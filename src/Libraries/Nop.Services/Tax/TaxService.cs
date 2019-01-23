@@ -10,6 +10,7 @@ using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
+using Nop.Core.Plugins;
 using Nop.Services.Common;
 using Nop.Services.Directory;
 using Nop.Services.Logging;
@@ -32,6 +33,7 @@ namespace Nop.Services.Tax
         private readonly IGeoLookupService _geoLookupService;
         private readonly ILogger _logger;
         private readonly IPluginService _pluginService;
+        private readonly IProviders<ITaxProvider> _taxProviders;
         private readonly IStateProvinceService _stateProvinceService;
         private readonly IStoreContext _storeContext;
         private readonly IWebHelper _webHelper;
@@ -51,6 +53,7 @@ namespace Nop.Services.Tax
             IGeoLookupService geoLookupService,
             ILogger logger,
             IPluginService pluginService,
+            IProviders<ITaxProvider> taxProviders,
             IStateProvinceService stateProvinceService,
             IStoreContext storeContext,
             IWebHelper webHelper,
@@ -66,6 +69,7 @@ namespace Nop.Services.Tax
             this._geoLookupService = geoLookupService;
             this._logger = logger;
             this._pluginService = pluginService;
+            this._taxProviders = taxProviders;
             this._stateProvinceService = stateProvinceService;
             this._storeContext = storeContext;
             this._webHelper = webHelper;
@@ -256,7 +260,7 @@ namespace Nop.Services.Tax
             isTaxable = true;
 
             //active tax provider
-            var activeTaxProvider = LoadActiveTaxProvider(customer);
+            var activeTaxProvider = _taxProviders.LoadActiveProvider(_taxSettings.ActiveTaxProviderSystemName, _workContext.CurrentCustomer);
             if (activeTaxProvider == null)
                 return;
 

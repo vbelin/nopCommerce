@@ -9,6 +9,7 @@ using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
+using Nop.Core.Plugins;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Events;
@@ -38,6 +39,8 @@ namespace Nop.Services.Shipping
         private readonly IPriceCalculationService _priceCalculationService;
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly IProductService _productService;
+        private readonly IProviders<IPickupPointProvider> _pickUpProviders;
+        private readonly IProviders<IShippingRateComputationMethod> _shippingProviders;
         private readonly IRepository<ShippingMethod> _shippingMethodRepository;
         private readonly IRepository<Warehouse> _warehouseRepository;
         private readonly IStoreContext _storeContext;
@@ -59,6 +62,8 @@ namespace Nop.Services.Shipping
             IPriceCalculationService priceCalculationService,
             IProductAttributeParser productAttributeParser,
             IProductService productService,
+            IProviders<IPickupPointProvider> pickUpProviders,
+            IProviders<IShippingRateComputationMethod> shippingProviders,
             IRepository<ShippingMethod> shippingMethodRepository,
             IRepository<Warehouse> warehouseRepository,
             IStoreContext storeContext,
@@ -72,11 +77,13 @@ namespace Nop.Services.Shipping
             this._genericAttributeService = genericAttributeService;
             this._localizationService = localizationService;
             this._logger = logger;
+            this._pickUpProviders = pickUpProviders;
             this._pluginService = pluginService;
             this._priceCalculationService = priceCalculationService;
             this._productAttributeParser = productAttributeParser;
             this._productService = productService;
             this._shippingMethodRepository = shippingMethodRepository;
+            this._shippingProviders = shippingProviders;
             this._storeContext = storeContext;
             this._warehouseRepository = warehouseRepository;
             this._shippingSettings = shippingSettings;
@@ -136,9 +143,7 @@ namespace Nop.Services.Shipping
         /// <returns>Shipping rate computation methods</returns>
         public virtual IList<IShippingRateComputationMethod> LoadActiveShippingRateComputationMethods(Customer customer = null, int storeId = 0)
         {
-            return LoadAllShippingRateComputationMethods(customer, storeId)
-                .Where(provider => _shippingSettings.ActiveShippingRateComputationMethodSystemNames
-                    .Contains(provider.PluginDescriptor.SystemName, StringComparer.InvariantCultureIgnoreCase)).ToList();
+            return _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, customer, storeId);
         }
 
         /// <summary>
@@ -148,8 +153,7 @@ namespace Nop.Services.Shipping
         /// <returns>Found Shipping rate computation method</returns>
         public virtual IShippingRateComputationMethod LoadShippingRateComputationMethodBySystemName(string systemName)
         {
-            var descriptor = _pluginService.GetPluginDescriptorBySystemName<IShippingRateComputationMethod>(systemName);
-            return descriptor?.Instance<IShippingRateComputationMethod>();
+            return _shippingProviders.LoadProviderBySystemName(systemName);
         }
 
         /// <summary>
@@ -160,7 +164,7 @@ namespace Nop.Services.Shipping
         /// <returns>Shipping rate computation methods</returns>
         public virtual IList<IShippingRateComputationMethod> LoadAllShippingRateComputationMethods(Customer customer = null, int storeId = 0)
         {
-            return _pluginService.GetPlugins<IShippingRateComputationMethod>(customer: customer, storeId: storeId).ToList();
+            return _shippingProviders.LoadAllProviders(customer, storeId);
         }
 
         /// <summary>
@@ -397,8 +401,7 @@ namespace Nop.Services.Shipping
         /// <returns>Pickup point providers</returns>
         public virtual IList<IPickupPointProvider> LoadActivePickupPointProviders(Customer customer = null, int storeId = 0)
         {
-            return LoadAllPickupPointProviders(customer, storeId).Where(provider => _shippingSettings.ActivePickupPointProviderSystemNames
-                .Contains(provider.PluginDescriptor.SystemName, StringComparer.InvariantCultureIgnoreCase)).ToList();
+            return _pickUpProviders.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, customer, storeId);
         }
 
         /// <summary>
@@ -408,8 +411,7 @@ namespace Nop.Services.Shipping
         /// <returns>Found pickup point provider</returns>
         public virtual IPickupPointProvider LoadPickupPointProviderBySystemName(string systemName)
         {
-            var descriptor = _pluginService.GetPluginDescriptorBySystemName<IPickupPointProvider>(systemName);
-            return descriptor?.Instance<IPickupPointProvider>();
+            return _pickUpProviders.LoadProviderBySystemName(systemName);
         }
 
         /// <summary>
@@ -420,7 +422,7 @@ namespace Nop.Services.Shipping
         /// <returns>Pickup point providers</returns>
         public virtual IList<IPickupPointProvider> LoadAllPickupPointProviders(Customer customer = null, int storeId = 0)
         {
-            return _pluginService.GetPlugins<IPickupPointProvider>(customer: customer, storeId: storeId).ToList();
+            return _pickUpProviders.LoadAllProviders(customer, storeId);
         }
 
         /// <summary>

@@ -759,7 +759,7 @@ namespace Nop.Services.Orders
 
                 //tax rates
                 var sciTax = sciInclTax - sciExclTax;
-                if (taxRate <= decimal.Zero || sciTax <= decimal.Zero) 
+                if (taxRate <= decimal.Zero || sciTax <= decimal.Zero)
                     continue;
 
                 if (!taxRates.ContainsKey(taxRate))
@@ -788,7 +788,7 @@ namespace Nop.Services.Orders
 
                         //tax rates
                         var caTax = caInclTax - caExclTax;
-                        if (taxRate <= decimal.Zero || caTax <= decimal.Zero) 
+                        if (taxRate <= decimal.Zero || caTax <= decimal.Zero)
                             continue;
 
                         if (!taxRates.ContainsKey(taxRate))
@@ -828,7 +828,7 @@ namespace Nop.Services.Orders
                 var taxRate = kvp.Key;
                 var taxValue = kvp.Value;
 
-                if (taxValue == decimal.Zero) 
+                if (taxValue == decimal.Zero)
                     continue;
 
                 //discount the tax amount that applies to subtotal items
