@@ -6,16 +6,34 @@ using System.Linq;
 
 namespace Nop.Core.Plugins
 {
-    public partial class Providers<TPlugin> : IProviders<TPlugin> where TPlugin : class, IPlugin
+    public partial class ProviderManager<TPlugin> : IProviderManager    <TPlugin> where TPlugin : class, IProvider
     {
+        #region Fields
+
         private readonly IPluginService _pluginService;
 
         private readonly List<PluginDescriptor> _descriptors;
 
         IList<TPlugin> _allProviders;
-        Dictionary<string, TPlugin> _providerBySysName;
+        Dictionary<string, TPlugin> _providersBySysName;
 
-        #region MyRegion
+        #endregion
+
+        #region ctor
+
+        public ProviderManager(IPluginService pluginService)
+        {
+            this._pluginService = pluginService;
+
+            _providersBySysName = new Dictionary<string, TPlugin>();
+
+            _descriptors = _pluginService.GetPluginDescriptors<TPlugin>().ToList();
+
+        }
+
+        #endregion
+
+        #region Utilities
 
         /// <summary>
         /// Check whether to load the plugin based on the customer passed
@@ -57,19 +75,10 @@ namespace Nop.Core.Plugins
             return pluginDescriptor.LimitedToStores.Contains(storeId);
         }
 
-
         #endregion
 
 
-        public Providers(IPluginService pluginService)
-        {
-            this._pluginService = pluginService;
-
-            _providerBySysName = new Dictionary<string, TPlugin>();
-
-            _descriptors = _pluginService.GetPluginDescriptors<TPlugin>().ToList();
-
-        }
+        #region Methods
 
         /// <summary>
         /// Returns all providers
@@ -87,10 +96,8 @@ namespace Nop.Core.Plugins
                 _allProviders = pluginDescriptors.Select(descriptor => descriptor.Instance<TPlugin>()).ToList();
                 return _allProviders;
             }
-            else
-            {
-                return _allProviders;
-            }
+
+            return _allProviders;
         }
 
         /// <summary>
@@ -101,57 +108,52 @@ namespace Nop.Core.Plugins
         /// <returns>Provider</returns>
         public virtual TPlugin LoadProviderBySystemName(string systemName, Customer customer = null)
         {
-            if (!_providerBySysName.ContainsKey(systemName))
+            if (!_providersBySysName.ContainsKey(systemName))
             {
                 var pluginDescriptors = _descriptors.Where(descriptor =>
                         FilterByCustomer(descriptor, customer)
                     );
                 var pluginDescriptor = pluginDescriptors.FirstOrDefault(descriptor => descriptor.SystemName.Equals(
                         systemName,
-                        StringComparison.InvariantCultureIgnoreCase)
-                    );
+                        StringComparison.InvariantCultureIgnoreCase));
 
-                _providerBySysName.Add(systemName, pluginDescriptor?.Instance<TPlugin>());
+                _providersBySysName.Add(systemName, pluginDescriptor?.Instance<TPlugin>());
 
                 return pluginDescriptor?.Instance<TPlugin>();
             }
-            else
-            {
-                return _providerBySysName[systemName];
-            }
 
-
+            return _providersBySysName[systemName];
         }
 
         /// <summary>
-        /// Returns all active providers
+        /// Returns active provider
         /// </summary>
         /// <param name="systemName">System name</param>
         /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
         /// <param name="storeId">Load records allowed only in a specified store; pass 0 to load all records</param>
-        /// <returns>List of providers</returns>
+        /// <returns>Active provider</returns>
         public virtual TPlugin LoadActiveProvider(string systemName, Customer customer = null, int storeId = 0)
         {
             var plugin = LoadProviderBySystemName(systemName, customer: customer) ??
                  LoadAllProviders(customer: customer, storeId: storeId).FirstOrDefault();
 
             return plugin;
-
         }
 
         /// <summary>
-        /// Returns active providers by system name
+        /// Returns active providers
         /// </summary>
         /// <param name="systemNames">System names</param>
         /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
         /// <param name="storeId">Load records allowed only in a specified store; pass 0 to load all records</param>
-        /// <returns>List of providers</returns>
+        /// <returns>List of active providers</returns>
         public virtual IList<TPlugin> LoadActiveProviders(List<string> systemNames, Customer customer = null, int storeId = 0)
         {
             return LoadAllProviders(customer: customer, storeId: storeId)
                 .Where(provider => systemNames
                     .Contains(provider.PluginDescriptor.SystemName, StringComparer.InvariantCultureIgnoreCase)).ToList();
         }
-    }
 
+        #endregion
+    }
 }

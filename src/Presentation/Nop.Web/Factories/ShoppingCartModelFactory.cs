@@ -17,6 +17,7 @@ using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
 using Nop.Core.Domain.Vendors;
 using Nop.Core.Http.Extensions;
+using Nop.Core.Plugins;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Customers;
@@ -72,6 +73,7 @@ namespace Nop.Web.Factories
         private readonly IPriceFormatter _priceFormatter;
         private readonly IProductAttributeFormatter _productAttributeFormatter;
         private readonly IProductService _productService;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
         private readonly IShippingService _shippingService;
         private readonly IShoppingCartService _shoppingCartService;
         private readonly IStateProvinceService _stateProvinceService;
@@ -121,6 +123,7 @@ namespace Nop.Web.Factories
             IPriceFormatter priceFormatter,
             IProductAttributeFormatter productAttributeFormatter,
             IProductService productService,
+            IProviderManager<IShippingRateComputationMethod> shippingProviders,
             IShippingService shippingService,
             IShoppingCartService shoppingCartService,
             IStateProvinceService stateProvinceService,
@@ -166,6 +169,7 @@ namespace Nop.Web.Factories
             this._priceFormatter = priceFormatter;
             this._productAttributeFormatter = productAttributeFormatter;
             this._productService = productService;
+            this._shippingProviders = shippingProviders;
             this._shippingService = shippingService;
             this._shoppingCartService = shoppingCartService;
             this._stateProvinceService = stateProvinceService;
@@ -1080,7 +1084,7 @@ namespace Nop.Web.Factories
                 }
 
                 //LoadAllShippingRateComputationMethods
-                var shippingRateComputationMethods = _shippingService.LoadActiveShippingRateComputationMethods(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
+                var shippingRateComputationMethods = _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
 
                 //shipping info
                 model.RequiresShipping = _shoppingCartService.ShoppingCartRequiresShipping(cart);

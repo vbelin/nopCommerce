@@ -23,7 +23,7 @@ namespace Nop.Services.Directory
         private readonly CurrencySettings _currencySettings;
         private readonly IEventPublisher _eventPublisher;
         private readonly IPluginService _pluginService;
-        private readonly IProviders<IExchangeRateProvider> _exchangeRateProvider;
+        private readonly IProviderManager<IExchangeRateProvider> _exchangeRateProvider;
         private readonly IRepository<Currency> _currencyRepository;
         private readonly IStaticCacheManager _cacheManager;
         private readonly IStoreMappingService _storeMappingService;
@@ -35,7 +35,7 @@ namespace Nop.Services.Directory
         public CurrencyService(CurrencySettings currencySettings,
             IEventPublisher eventPublisher,
             IPluginService pluginService,
-            IProviders<IExchangeRateProvider> exchangeRateProvider,
+            IProviderManager<IExchangeRateProvider> exchangeRateProvider,
             IRepository<Currency> currencyRepository,
             IStaticCacheManager cacheManager,
             IStoreMappingService storeMappingService)
@@ -63,7 +63,8 @@ namespace Nop.Services.Directory
         /// <returns>Exchange rates</returns>
         public virtual IList<ExchangeRate> GetCurrencyLiveRates(string exchangeRateCurrencyCode, Customer customer = null)
         {
-            var exchangeRateProvider = LoadActiveExchangeRateProvider(customer);
+            var exchangeRateProvider = _exchangeRateProvider
+                .LoadActiveProvider(_currencySettings.ActiveExchangeRateProviderSystemName, customer: customer);
             if (exchangeRateProvider == null)
                 throw new Exception("Active exchange rate provider cannot be loaded");
 
@@ -345,43 +346,6 @@ namespace Nop.Services.Directory
             var primaryStoreCurrency = GetCurrencyById(_currencySettings.PrimaryStoreCurrencyId);
             var result = ConvertCurrency(amount, primaryStoreCurrency, targetCurrencyCode);
             return result;
-        }
-
-        #endregion
-
-        #region Exchange rate providers
-
-        /// <summary>
-        /// Load active exchange rate provider
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <returns>Active exchange rate provider</returns>
-        public virtual IExchangeRateProvider LoadActiveExchangeRateProvider(Customer customer = null)
-        {
-            return _exchangeRateProvider.LoadActiveProvider(_currencySettings.ActiveExchangeRateProviderSystemName, customer: customer);
-        }
-
-        /// <summary>
-        /// Load exchange rate provider by system name
-        /// </summary>
-        /// <param name="systemName">System name</param>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <returns>Found exchange rate provider</returns>
-        public virtual IExchangeRateProvider LoadExchangeRateProviderBySystemName(string systemName, Customer customer = null)
-        {
-            return _exchangeRateProvider.LoadProviderBySystemName(systemName, customer: customer);
-        }
-
-        /// <summary>
-        /// Load all exchange rate providers
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <returns>Exchange rate providers</returns>
-        public virtual IList<IExchangeRateProvider> LoadAllExchangeRateProviders(Customer customer = null)
-        {
-            var exchangeRateProviders = _exchangeRateProvider.LoadAllProviders(customer: customer);
-
-            return exchangeRateProviders.OrderBy(tp => tp.PluginDescriptor).ToList();
         }
 
         #endregion

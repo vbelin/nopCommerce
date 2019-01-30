@@ -33,7 +33,7 @@ namespace Nop.Services.Tax
         private readonly IGeoLookupService _geoLookupService;
         private readonly ILogger _logger;
         private readonly IPluginService _pluginService;
-        private readonly IProviders<ITaxProvider> _taxProviders;
+        private readonly IProviderManager<ITaxProvider> _taxProviderManager;
         private readonly IStateProvinceService _stateProvinceService;
         private readonly IStoreContext _storeContext;
         private readonly IWebHelper _webHelper;
@@ -53,7 +53,7 @@ namespace Nop.Services.Tax
             IGeoLookupService geoLookupService,
             ILogger logger,
             IPluginService pluginService,
-            IProviders<ITaxProvider> taxProviders,
+            IProviderManager<ITaxProvider> taxProviderManager,
             IStateProvinceService stateProvinceService,
             IStoreContext storeContext,
             IWebHelper webHelper,
@@ -69,7 +69,7 @@ namespace Nop.Services.Tax
             this._geoLookupService = geoLookupService;
             this._logger = logger;
             this._pluginService = pluginService;
-            this._taxProviders = taxProviders;
+            this._taxProviderManager = taxProviderManager;
             this._stateProvinceService = stateProvinceService;
             this._storeContext = storeContext;
             this._webHelper = webHelper;
@@ -260,7 +260,7 @@ namespace Nop.Services.Tax
             isTaxable = true;
 
             //active tax provider
-            var activeTaxProvider = _taxProviders.LoadActiveProvider(_taxSettings.ActiveTaxProviderSystemName, _workContext.CurrentCustomer);
+            var activeTaxProvider = _taxProviderManager.LoadActiveProvider(_taxSettings.ActiveTaxProviderSystemName, customer);
             if (activeTaxProvider == null)
                 return;
 
@@ -305,43 +305,6 @@ namespace Nop.Services.Tax
         #endregion
 
         #region Methods
-
-        #region Tax providers
-
-        /// <summary>
-        /// Load active tax provider
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <returns>Active tax provider</returns>
-        public virtual ITaxProvider LoadActiveTaxProvider(Customer customer = null)
-        {
-            var taxProvider = LoadTaxProviderBySystemName(_taxSettings.ActiveTaxProviderSystemName) ??
-                              LoadAllTaxProviders(customer).FirstOrDefault();
-            return taxProvider;
-        }
-
-        /// <summary>
-        /// Load tax provider by system name
-        /// </summary>
-        /// <param name="systemName">System name</param>
-        /// <returns>Found tax provider</returns>
-        public virtual ITaxProvider LoadTaxProviderBySystemName(string systemName)
-        {
-            var descriptor = _pluginService.GetPluginDescriptorBySystemName<ITaxProvider>(systemName);
-            return descriptor?.Instance<ITaxProvider>();
-        }
-
-        /// <summary>
-        /// Load all tax providers
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <returns>Tax providers</returns>
-        public virtual IList<ITaxProvider> LoadAllTaxProviders(Customer customer = null)
-        {
-            return _pluginService.GetPlugins<ITaxProvider>(customer: customer).ToList();
-        }
-
-        #endregion
 
         #region Product price
 

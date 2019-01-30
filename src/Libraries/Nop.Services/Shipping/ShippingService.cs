@@ -39,8 +39,8 @@ namespace Nop.Services.Shipping
         private readonly IPriceCalculationService _priceCalculationService;
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly IProductService _productService;
-        private readonly IProviders<IPickupPointProvider> _pickUpProviders;
-        private readonly IProviders<IShippingRateComputationMethod> _shippingProviders;
+        private readonly IProviderManager<IPickupPointProvider> _pickUpProviders;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
         private readonly IRepository<ShippingMethod> _shippingMethodRepository;
         private readonly IRepository<Warehouse> _warehouseRepository;
         private readonly IStoreContext _storeContext;
@@ -62,8 +62,8 @@ namespace Nop.Services.Shipping
             IPriceCalculationService priceCalculationService,
             IProductAttributeParser productAttributeParser,
             IProductService productService,
-            IProviders<IPickupPointProvider> pickUpProviders,
-            IProviders<IShippingRateComputationMethod> shippingProviders,
+            IProviderManager<IPickupPointProvider> pickUpProviders,
+            IProviderManager<IShippingRateComputationMethod> shippingProviders,
             IRepository<ShippingMethod> shippingMethodRepository,
             IRepository<Warehouse> warehouseRepository,
             IStoreContext storeContext,
@@ -77,12 +77,12 @@ namespace Nop.Services.Shipping
             this._genericAttributeService = genericAttributeService;
             this._localizationService = localizationService;
             this._logger = logger;
-            this._pickUpProviders = pickUpProviders;
             this._pluginService = pluginService;
             this._priceCalculationService = priceCalculationService;
             this._productAttributeParser = productAttributeParser;
             this._productService = productService;
             this._shippingMethodRepository = shippingMethodRepository;
+            this._pickUpProviders = pickUpProviders;
             this._shippingProviders = shippingProviders;
             this._storeContext = storeContext;
             this._warehouseRepository = warehouseRepository;
@@ -134,38 +134,6 @@ namespace Nop.Services.Shipping
         #region Methods
 
         #region Shipping rate computation methods
-
-        /// <summary>
-        /// Load active shipping rate computation methods
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <param name="storeId">Load records allowed only in a specified store; pass 0 to load all records</param>
-        /// <returns>Shipping rate computation methods</returns>
-        public virtual IList<IShippingRateComputationMethod> LoadActiveShippingRateComputationMethods(Customer customer = null, int storeId = 0)
-        {
-            return _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, customer, storeId);
-        }
-
-        /// <summary>
-        /// Load shipping rate computation method by system name
-        /// </summary>
-        /// <param name="systemName">System name</param>
-        /// <returns>Found Shipping rate computation method</returns>
-        public virtual IShippingRateComputationMethod LoadShippingRateComputationMethodBySystemName(string systemName)
-        {
-            return _shippingProviders.LoadProviderBySystemName(systemName);
-        }
-
-        /// <summary>
-        /// Load all shipping rate computation methods
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <param name="storeId">Load records allowed only in a specified store; pass 0 to load all records</param>
-        /// <returns>Shipping rate computation methods</returns>
-        public virtual IList<IShippingRateComputationMethod> LoadAllShippingRateComputationMethods(Customer customer = null, int storeId = 0)
-        {
-            return _shippingProviders.LoadAllProviders(customer, storeId);
-        }
 
         /// <summary>
         /// Is shipping rate computation method active
@@ -392,38 +360,6 @@ namespace Nop.Services.Shipping
         #endregion
 
         #region Pickup points
-
-        /// <summary>
-        /// Load active pickup point providers
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <param name="storeId">Load records allowed only in a specified store; pass 0 to load all records</param>
-        /// <returns>Pickup point providers</returns>
-        public virtual IList<IPickupPointProvider> LoadActivePickupPointProviders(Customer customer = null, int storeId = 0)
-        {
-            return _pickUpProviders.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, customer, storeId);
-        }
-
-        /// <summary>
-        /// Load pickup point provider by system name
-        /// </summary>
-        /// <param name="systemName">System name</param>
-        /// <returns>Found pickup point provider</returns>
-        public virtual IPickupPointProvider LoadPickupPointProviderBySystemName(string systemName)
-        {
-            return _pickUpProviders.LoadProviderBySystemName(systemName);
-        }
-
-        /// <summary>
-        /// Load all pickup point providers
-        /// </summary>
-        /// <param name="customer">Load records allowed only to a specified customer; pass null to ignore ACL permissions</param>
-        /// <param name="storeId">Load records allowed only in a specified store; pass 0 to load all records</param>
-        /// <returns>Pickup point providers</returns>
-        public virtual IList<IPickupPointProvider> LoadAllPickupPointProviders(Customer customer = null, int storeId = 0)
-        {
-            return _pickUpProviders.LoadAllProviders(customer, storeId);
-        }
 
         /// <summary>
         /// Is pickup point provider active
@@ -895,7 +831,7 @@ namespace Nop.Services.Shipping
             var shippingOptionRequests = CreateShippingOptionRequests(cart, shippingAddress, storeId, out var shippingFromMultipleLocations);
             result.ShippingFromMultipleLocations = shippingFromMultipleLocations;
 
-            var shippingRateComputationMethods = LoadActiveShippingRateComputationMethods(customer, storeId);
+            var shippingRateComputationMethods = _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, customer, storeId);
             //filter by system name
             if (!string.IsNullOrWhiteSpace(allowedShippingRateComputationMethodSystemName))
             {
@@ -996,7 +932,7 @@ namespace Nop.Services.Shipping
         public virtual GetPickupPointsResponse GetPickupPoints(Address address, Customer customer = null, string providerSystemName = null, int storeId = 0)
         {
             var result = new GetPickupPointsResponse();
-            var pickupPointsProviders = LoadActivePickupPointProviders(customer, storeId);
+            var pickupPointsProviders = _pickUpProviders.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, customer, storeId);
 
             if (!string.IsNullOrEmpty(providerSystemName))
             {

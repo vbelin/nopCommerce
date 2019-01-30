@@ -10,6 +10,7 @@ using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
+using Nop.Core.Plugins;
 using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Discounts;
@@ -33,6 +34,7 @@ namespace Nop.Services.Orders
         private readonly IGiftCardService _giftCardService;
         private readonly IPaymentService _paymentService;
         private readonly IPriceCalculationService _priceCalculationService;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
         private readonly IRewardPointService _rewardPointService;
         private readonly IShippingService _shippingService;
         private readonly IShoppingCartService _shoppingCartService;
@@ -55,6 +57,7 @@ namespace Nop.Services.Orders
             IGiftCardService giftCardService,
             IPaymentService paymentService,
             IPriceCalculationService priceCalculationService,
+            IProviderManager<IShippingRateComputationMethod> shippingProviders,
             IRewardPointService rewardPointService,
             IShippingService shippingService,
             IShoppingCartService shoppingCartService,
@@ -73,6 +76,7 @@ namespace Nop.Services.Orders
             this._giftCardService = giftCardService;
             this._paymentService = paymentService;
             this._priceCalculationService = priceCalculationService;
+            this._shippingProviders = shippingProviders;
             this._rewardPointService = rewardPointService;
             this._rewardPointsSettings = rewardPointsSettings;
             this._shippingService = shippingService;
@@ -447,7 +451,7 @@ namespace Nop.Services.Orders
                         {
                             //or try to get the cheapest shipping option for the shipping to the customer address 
                             var shippingRateComputationMethods =
-                                _shippingService.LoadActiveShippingRateComputationMethods(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
+                                _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
                             if (shippingRateComputationMethods.Any())
                             {
                                 var shippingOptionsResponse = _shippingService.GetShippingOptions(restoredCart, customer.ShippingAddress, _workContext.CurrentCustomer, storeId: _storeContext.CurrentStore.Id);
@@ -1280,7 +1284,7 @@ namespace Nop.Services.Orders
             var subtotalBase = subTotalWithDiscountBase;
 
             //LoadAllShippingRateComputationMethods
-            var shippingRateComputationMethods = _shippingService.LoadActiveShippingRateComputationMethods(_workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
+            var shippingRateComputationMethods = _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
 
             //shipping without tax
             var shoppingCartShipping = GetShoppingCartShippingTotal(cart, false, shippingRateComputationMethods);
