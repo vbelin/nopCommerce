@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Nop.Core.Plugins
+﻿namespace Nop.Core.Plugins
 {
     /// <summary>
-    /// Represent provider plugins
+    /// Provider interface
     /// </summary>
     public interface IProvider : IPlugin
     {
