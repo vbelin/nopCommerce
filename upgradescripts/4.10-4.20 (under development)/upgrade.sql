@@ -311,23 +311,8 @@ set @resources='
   <LocaleResource Name="Admin.Configuration.Settings.Gdpr.LogUserProfileChanges.Hint">
     <Value>Check to log user profile changes (if this feature is enabled in your store).</Value>
   </LocaleResource>
-  <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.CompanyChanged">
-    <Value>User changed company name</Value>
-  </LocaleResource>
-  <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.DateOfBirthChanged">
-    <Value>User changed first date of birth</Value>
-  </LocaleResource>
-  <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.EmailChanged">
-    <Value>User changed email</Value>
-  </LocaleResource>
-    <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.FirstNameChanged">
-    <Value>User changed first name</Value>
-  </LocaleResource>
-  <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.GenderChanged">
-    <Value>User changed gender</Value>
-  </LocaleResource>
-  <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.LastNameChanged">
-    <Value>User changed last name</Value>
+  <LocaleResource Name="Enums.Nop.Core.Domain.Gdpr.GdprRequestType.ProfileChanged">
+    <Value>User changed profile</Value>
   </LocaleResource>
 </Language>'
 

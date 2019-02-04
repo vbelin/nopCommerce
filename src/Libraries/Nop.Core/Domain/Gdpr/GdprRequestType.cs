@@ -26,34 +26,9 @@ namespace Nop.Core.Domain.Gdpr
         DeleteCustomer = 15,
 
         /// <summary>
-        /// User changed first name
+        /// User changed profile
         /// </summary>
-        FirstNameChanged = 20,
-
-        /// <summary>
-        /// User changed last name
-        /// </summary>
-        LastNameChanged = 21,
-
-        /// <summary>
-        /// User changed gender
-        /// </summary>
-        GenderChanged = 22,
-
-        /// <summary>
-        /// User changed date of birth
-        /// </summary>
-        DateOfBirthChanged = 23,
-
-        /// <summary>
-        /// User changed email
-        /// </summary>
-        EmailChanged = 24,
-
-        /// <summary>
-        /// User changed company name
-        /// </summary>
-        CompanyChanged = 25
+        ProfileChanged = 20
 
     }
 }
