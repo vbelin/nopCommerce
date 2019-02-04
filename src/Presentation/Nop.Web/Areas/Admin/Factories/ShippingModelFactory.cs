@@ -34,8 +34,8 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly ILocalizationService _localizationService;
         private readonly ILocalizedModelFactory _localizedModelFactory;
         private readonly IPluginService _pluginService;
-        private readonly IProviderManager<IPickupPointProvider> _pickUpProviders;
-        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
+        private readonly IProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
         private readonly IShippingService _shippingService;
 
         #endregion
@@ -49,8 +49,8 @@ namespace Nop.Web.Areas.Admin.Factories
             ILocalizationService localizationService,
             ILocalizedModelFactory localizedModelFactory,
             IPluginService pluginService,
-            IProviderManager<IPickupPointProvider> pickUpProviders,
-            IProviderManager<IShippingRateComputationMethod> shippingProviders,
+            IProviderManager<IPickupPointProvider> pickUpProviderManager,
+            IProviderManager<IShippingRateComputationMethod> shippingProviderManager,
             IShippingService shippingService)
         {
             this._addressService = addressService;
@@ -60,8 +60,8 @@ namespace Nop.Web.Areas.Admin.Factories
             this._localizationService = localizationService;
             this._localizedModelFactory = localizedModelFactory;
             this._pluginService = pluginService;
-            this._pickUpProviders = pickUpProviders;
-            this._shippingProviders = shippingProviders;
+            this._pickUpProviderManager = pickUpProviderManager;
+            this._shippingProviderManager = shippingProviderManager;
             this._shippingService = shippingService;
         }
 
@@ -160,7 +160,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 throw new ArgumentNullException(nameof(searchModel));
 
             //get shipping providers
-            var shippingProviders = _shippingProviders.LoadAllProviders();
+            var shippingProviders = _shippingProviderManager.LoadAllProviders();
 
             //prepare grid model
             var model = new ShippingProviderListModel
@@ -210,7 +210,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 throw new ArgumentNullException(nameof(searchModel));
 
             //get pickup point providers
-            var pickupPointProviders = _pickUpProviders.LoadAllProviders();
+            var pickupPointProviders = _pickUpProviderManager.LoadAllProviders();
 
             //prepare grid model
             var model = new PickupPointProviderListModel

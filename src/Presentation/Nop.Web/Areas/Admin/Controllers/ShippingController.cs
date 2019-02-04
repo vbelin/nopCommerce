@@ -39,8 +39,8 @@ namespace Nop.Web.Areas.Admin.Controllers
         private readonly ILocalizedEntityService _localizedEntityService;
         private readonly INotificationService _notificationService;
         private readonly IPermissionService _permissionService;
-        private readonly IProviderManager<IPickupPointProvider> _pickUpProviders;
-        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
+        private readonly IProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
         private readonly ISettingService _settingService;
         private readonly IShippingModelFactory _shippingModelFactory;
         private readonly IShippingService _shippingService;
@@ -59,8 +59,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             ILocalizedEntityService localizedEntityService,
             INotificationService notificationService,
             IPermissionService permissionService,
-            IProviderManager<IPickupPointProvider> pickUpProviders,
-            IProviderManager<IShippingRateComputationMethod> shippingProviders,
+            IProviderManager<IPickupPointProvider> pickUpProviderManager,
+            IProviderManager<IShippingRateComputationMethod> shippingProviderManager,
             ISettingService settingService,
             IShippingModelFactory shippingModelFactory,
             IShippingService shippingService,
@@ -75,8 +75,8 @@ namespace Nop.Web.Areas.Admin.Controllers
             this._localizedEntityService = localizedEntityService;
             this._notificationService = notificationService;
             this._permissionService = permissionService;
-            this._shippingProviders = shippingProviders;
-            this._pickUpProviders = pickUpProviders;
+            this._shippingProviderManager = shippingProviderManager;
+            this._pickUpProviderManager = pickUpProviderManager;
             this._settingService = settingService;
             this._shippingModelFactory = shippingModelFactory;
             this._shippingService = shippingService;
@@ -145,7 +145,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
                 return AccessDeniedView();
 
-            var srcm = _shippingProviders.LoadProviderBySystemName(model.SystemName);
+            var srcm = _shippingProviderManager.LoadProviderBySystemName(model.SystemName);
             if (_shippingService.IsShippingRateComputationMethodActive(srcm))
             {
                 if (!model.IsActive)
@@ -212,7 +212,7 @@ namespace Nop.Web.Areas.Admin.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
                 return AccessDeniedView();
 
-            var pickupPointProvider = _pickUpProviders.LoadProviderBySystemName(model.SystemName);
+            var pickupPointProvider = _pickUpProviderManager.LoadProviderBySystemName(model.SystemName);
             if (_shippingService.IsPickupPointProviderActive(pickupPointProvider))
             {
                 if (!model.IsActive)

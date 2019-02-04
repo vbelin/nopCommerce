@@ -21,8 +21,8 @@ namespace Nop.Services.Shipping
         #region Fields
 
         private readonly IEventPublisher _eventPublisher;
-        private readonly IProviderManager<IPickupPointProvider> _pickUpProviders;
-        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
+        private readonly IProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
         private readonly IRepository<OrderItem> _orderItemRepository;
         private readonly IRepository<Shipment> _shipmentRepository;
         private readonly IRepository<ShipmentItem> _siRepository;
@@ -33,16 +33,16 @@ namespace Nop.Services.Shipping
         #region Ctor
 
         public ShipmentService(IEventPublisher eventPublisher,
-            IProviderManager<IPickupPointProvider> pickUpProviders,
-            IProviderManager<IShippingRateComputationMethod> shippingProviders,
+            IProviderManager<IPickupPointProvider> pickUpProviderManager,
+            IProviderManager<IShippingRateComputationMethod> shippingProviderManager,
             IRepository<OrderItem> orderItemRepository,
             IRepository<Shipment> shipmentRepository,
             IRepository<ShipmentItem> siRepository,
             IShippingService shippingService)
         {
             this._eventPublisher = eventPublisher;
-            this._pickUpProviders = pickUpProviders;
-            this._shippingProviders = shippingProviders;
+            this._pickUpProviderManager = pickUpProviderManager;
+            this._shippingProviderManager = shippingProviderManager;
             this._orderItemRepository = orderItemRepository;
             this._shipmentRepository = shipmentRepository;
             this._siRepository = siRepository;
@@ -316,13 +316,13 @@ namespace Nop.Services.Shipping
         {
             if (!shipment.Order.PickUpInStore)
             {
-                var shippingRateComputationMethod = _shippingProviders
+                var shippingRateComputationMethod = _shippingProviderManager
                         .LoadProviderBySystemName(shipment.Order.ShippingRateComputationMethodSystemName);
                 return shippingRateComputationMethod?.ShipmentTracker;
             }
             else
             {
-                var pickupPointProvider = _pickUpProviders
+                var pickupPointProvider = _pickUpProviderManager
                     .LoadProviderBySystemName(shipment.Order.ShippingRateComputationMethodSystemName);
                 return pickupPointProvider?.ShipmentTracker;
             }

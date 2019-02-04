@@ -39,8 +39,8 @@ namespace Nop.Services.Shipping
         private readonly IPriceCalculationService _priceCalculationService;
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly IProductService _productService;
-        private readonly IProviderManager<IPickupPointProvider> _pickUpProviders;
-        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
+        private readonly IProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
         private readonly IRepository<ShippingMethod> _shippingMethodRepository;
         private readonly IRepository<Warehouse> _warehouseRepository;
         private readonly IStoreContext _storeContext;
@@ -62,8 +62,8 @@ namespace Nop.Services.Shipping
             IPriceCalculationService priceCalculationService,
             IProductAttributeParser productAttributeParser,
             IProductService productService,
-            IProviderManager<IPickupPointProvider> pickUpProviders,
-            IProviderManager<IShippingRateComputationMethod> shippingProviders,
+            IProviderManager<IPickupPointProvider> pickUpProviderManager,
+            IProviderManager<IShippingRateComputationMethod> shippingProviderManager,
             IRepository<ShippingMethod> shippingMethodRepository,
             IRepository<Warehouse> warehouseRepository,
             IStoreContext storeContext,
@@ -82,8 +82,8 @@ namespace Nop.Services.Shipping
             this._productAttributeParser = productAttributeParser;
             this._productService = productService;
             this._shippingMethodRepository = shippingMethodRepository;
-            this._pickUpProviders = pickUpProviders;
-            this._shippingProviders = shippingProviders;
+            this._pickUpProviderManager = pickUpProviderManager;
+            this._shippingProviderManager = shippingProviderManager;
             this._storeContext = storeContext;
             this._warehouseRepository = warehouseRepository;
             this._shippingSettings = shippingSettings;
@@ -831,7 +831,7 @@ namespace Nop.Services.Shipping
             var shippingOptionRequests = CreateShippingOptionRequests(cart, shippingAddress, storeId, out var shippingFromMultipleLocations);
             result.ShippingFromMultipleLocations = shippingFromMultipleLocations;
 
-            var shippingRateComputationMethods = _shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, customer, storeId);
+            var shippingRateComputationMethods = _shippingProviderManager.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, customer, storeId);
             //filter by system name
             if (!string.IsNullOrWhiteSpace(allowedShippingRateComputationMethodSystemName))
             {
@@ -932,7 +932,7 @@ namespace Nop.Services.Shipping
         public virtual GetPickupPointsResponse GetPickupPoints(Address address, Customer customer = null, string providerSystemName = null, int storeId = 0)
         {
             var result = new GetPickupPointsResponse();
-            var pickupPointsProviders = _pickUpProviders.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, customer, storeId);
+            var pickupPointsProviders = _pickUpProviderManager.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, customer, storeId);
 
             if (!string.IsNullOrEmpty(providerSystemName))
             {

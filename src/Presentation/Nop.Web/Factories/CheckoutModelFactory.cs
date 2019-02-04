@@ -42,8 +42,8 @@ namespace Nop.Web.Factories
         private readonly IPaymentService _paymentService;
         private readonly IPluginService _pluginService;
         private readonly IPriceFormatter _priceFormatter;
-        private readonly IProviderManager<IPickupPointProvider> _pickUpProviders;
-        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviders;
+        private readonly IProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private readonly IProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
         private readonly IRewardPointService _rewardPointService;
         private readonly IShippingService _shippingService;
         private readonly IShoppingCartService _shoppingCartService;
@@ -74,8 +74,8 @@ namespace Nop.Web.Factories
             IPaymentService paymentService,
             IPluginService pluginService,
             IPriceFormatter priceFormatter,
-            IProviderManager<IPickupPointProvider> pickUpProviders,
-            IProviderManager<IShippingRateComputationMethod> shippingProviders,
+            IProviderManager<IPickupPointProvider> pickUpProviderManager,
+            IProviderManager<IShippingRateComputationMethod> shippingProviderManager,
             IRewardPointService rewardPointService,
             IShippingService shippingService,
             IShoppingCartService shoppingCartService,
@@ -102,8 +102,8 @@ namespace Nop.Web.Factories
             this._paymentService = paymentService;
             this._pluginService = pluginService;
             this._priceFormatter = priceFormatter;
-            this._pickUpProviders = pickUpProviders;
-            this._shippingProviders = shippingProviders;
+            this._pickUpProviderManager = pickUpProviderManager;
+            this._shippingProviderManager = shippingProviderManager;
             this._rewardPointService = rewardPointService;
             this._shippingService = shippingService;
             this._shoppingCartService = shoppingCartService;
@@ -203,7 +203,7 @@ namespace Nop.Web.Factories
             {
                 model.DisplayPickupPointsOnMap = _shippingSettings.DisplayPickupPointsOnMap;
                 model.GoogleMapsApiKey = _shippingSettings.GoogleMapsApiKey;
-                var pickupPointProviders = _pickUpProviders.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
+                var pickupPointProviders = _pickUpProviderManager.LoadActiveProviders(_shippingSettings.ActivePickupPointProviderSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id);
                 if (pickupPointProviders.Any())
                 {
                     var languageId = _workContext.WorkingLanguage.Id;
@@ -246,7 +246,7 @@ namespace Nop.Web.Factories
                 }
 
                 //only available pickup points
-                if (!_shippingProviders.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id).Any())
+                if (!_shippingProviderManager.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames, _workContext.CurrentCustomer, _storeContext.CurrentStore.Id).Any())
                 {
                     if (!pickupPointProviders.Any())
                     {

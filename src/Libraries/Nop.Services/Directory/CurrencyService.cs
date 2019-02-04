@@ -23,7 +23,7 @@ namespace Nop.Services.Directory
         private readonly CurrencySettings _currencySettings;
         private readonly IEventPublisher _eventPublisher;
         private readonly IPluginService _pluginService;
-        private readonly IProviderManager<IExchangeRateProvider> _exchangeRateProvider;
+        private readonly IProviderManager<IExchangeRateProvider> _exchangeRateProviderManager;
         private readonly IRepository<Currency> _currencyRepository;
         private readonly IStaticCacheManager _cacheManager;
         private readonly IStoreMappingService _storeMappingService;
@@ -35,7 +35,7 @@ namespace Nop.Services.Directory
         public CurrencyService(CurrencySettings currencySettings,
             IEventPublisher eventPublisher,
             IPluginService pluginService,
-            IProviderManager<IExchangeRateProvider> exchangeRateProvider,
+            IProviderManager<IExchangeRateProvider> exchangeRateProviderManager,
             IRepository<Currency> currencyRepository,
             IStaticCacheManager cacheManager,
             IStoreMappingService storeMappingService)
@@ -43,7 +43,7 @@ namespace Nop.Services.Directory
             this._currencySettings = currencySettings;
             this._eventPublisher = eventPublisher;
             this._pluginService = pluginService;
-            this._exchangeRateProvider = exchangeRateProvider;
+            this._exchangeRateProviderManager = exchangeRateProviderManager;
             this._currencyRepository = currencyRepository;
             this._cacheManager = cacheManager;
             this._storeMappingService = storeMappingService;
@@ -63,7 +63,7 @@ namespace Nop.Services.Directory
         /// <returns>Exchange rates</returns>
         public virtual IList<ExchangeRate> GetCurrencyLiveRates(string exchangeRateCurrencyCode, Customer customer = null)
         {
-            var exchangeRateProvider = _exchangeRateProvider
+            var exchangeRateProvider = _exchangeRateProviderManager
                 .LoadActiveProvider(_currencySettings.ActiveExchangeRateProviderSystemName, customer: customer);
             if (exchangeRateProvider == null)
                 throw new Exception("Active exchange rate provider cannot be loaded");

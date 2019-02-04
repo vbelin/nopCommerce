@@ -12,7 +12,7 @@ namespace Nop.Services.Plugins
 
         private readonly List<PluginDescriptor> _descriptors;
         private readonly Dictionary<string, TPlugin> _providersBySysName;
-        private List<TPlugin> _allProviders;
+        private readonly Dictionary<Guid, List<TPlugin>> _allProviders;
 
         #endregion
 
@@ -21,6 +21,7 @@ namespace Nop.Services.Plugins
         public ProviderManager(IPluginService pluginService)
         {
             _providersBySysName = new Dictionary<string, TPlugin>();
+            _allProviders = new Dictionary<Guid, List<TPlugin>>();
             _descriptors = pluginService.GetPluginDescriptors<TPlugin>().ToList();
         }
 
@@ -80,15 +81,18 @@ namespace Nop.Services.Plugins
         /// <returns>List of providers</returns>
         public virtual IList<TPlugin> LoadAllProviders(Customer customer = null, int storeId = 0)
         {
-            if (_allProviders != null) 
-                return _allProviders;
+            //get customer guid. If customer is null, then use default (all zeros) guid value
+            var guid = customer?.CustomerGuid ?? default(Guid);
+
+            if (_allProviders.ContainsKey(guid))
+                return _allProviders[guid];
 
             var pluginDescriptors = _descriptors.Where(descriptor =>
                 FilterByCustomer(descriptor, customer) &&
                 FilterByStore(descriptor, storeId));
-            _allProviders = pluginDescriptors.Select(descriptor => descriptor.Instance<TPlugin>()).ToList();
-            
-            return _allProviders;
+            _allProviders.Add(guid, pluginDescriptors.Select(descriptor => descriptor.Instance<TPlugin>()).ToList());
+
+            return _allProviders[guid];
         }
 
         /// <summary>

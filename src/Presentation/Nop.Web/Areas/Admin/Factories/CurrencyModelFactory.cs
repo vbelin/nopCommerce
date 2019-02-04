@@ -27,7 +27,7 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly IDateTimeHelper _dateTimeHelper;
         private readonly ILocalizationService _localizationService;
         private readonly ILocalizedModelFactory _localizedModelFactory;
-        private readonly IProviderManager<IExchangeRateProvider> _exchangeRateProvider;
+        private readonly IProviderManager<IExchangeRateProvider> _exchangeRateProviderManager;
         private readonly IStoreMappingSupportedModelFactory _storeMappingSupportedModelFactory;
         private readonly IWorkContext _workContext;
 
@@ -40,7 +40,7 @@ namespace Nop.Web.Areas.Admin.Factories
             IDateTimeHelper dateTimeHelper,
             ILocalizationService localizationService,
             ILocalizedModelFactory localizedModelFactory,
-            IProviderManager<IExchangeRateProvider> exchangeRateProvider,
+            IProviderManager<IExchangeRateProvider> exchangeRateProviderManager,
             IStoreMappingSupportedModelFactory storeMappingSupportedModelFactory,
             IWorkContext workContext)
         {
@@ -49,7 +49,7 @@ namespace Nop.Web.Areas.Admin.Factories
             this._dateTimeHelper = dateTimeHelper;
             this._localizationService = localizationService;
             this._localizedModelFactory = localizedModelFactory;
-            this._exchangeRateProvider = exchangeRateProvider;
+            this._exchangeRateProviderManager = exchangeRateProviderManager;
             this._storeMappingSupportedModelFactory = storeMappingSupportedModelFactory;
             this._workContext = workContext;
         }
@@ -71,7 +71,7 @@ namespace Nop.Web.Areas.Admin.Factories
             model.AutoUpdateEnabled = _currencySettings.AutoUpdateEnabled;
 
             //prepare available exchange rate providers
-            var availableExchangeRateProviders = _exchangeRateProvider.LoadAllProviders(customer: _workContext.CurrentCustomer)
+            var availableExchangeRateProviders = _exchangeRateProviderManager.LoadAllProviders(customer: _workContext.CurrentCustomer)
                 .OrderBy(tp => tp.PluginDescriptor).ToList();
             model.ExchangeRateProviders = availableExchangeRateProviders.Select(provider => new SelectListItem
             {
