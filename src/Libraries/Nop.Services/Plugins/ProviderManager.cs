@@ -81,18 +81,18 @@ namespace Nop.Services.Plugins
         /// <returns>List of providers</returns>
         public virtual IList<TPlugin> LoadAllProviders(Customer customer = null, int storeId = 0)
         {
-            //get customer guid. If customer is null, then use default (all zeros) guid value
-            var guid = customer?.CustomerGuid ?? default(Guid);
+            //get customer GUID. If customer is null, then use default (all zeros) GUID value
+            var customerGuid = customer?.CustomerGuid ?? default(Guid);
 
-            if (_allProviders.ContainsKey(guid))
-                return _allProviders[guid];
+            if (_allProviders.ContainsKey(customerGuid))
+                return _allProviders[customerGuid];
 
             var pluginDescriptors = _descriptors.Where(descriptor =>
                 FilterByCustomer(descriptor, customer) &&
                 FilterByStore(descriptor, storeId));
-            _allProviders.Add(guid, pluginDescriptors.Select(descriptor => descriptor.Instance<TPlugin>()).ToList());
+            _allProviders.Add(customerGuid, pluginDescriptors.Select(descriptor => descriptor.Instance<TPlugin>()).ToList());
 
-            return _allProviders[guid];
+            return _allProviders[customerGuid];
         }
 
         /// <summary>
