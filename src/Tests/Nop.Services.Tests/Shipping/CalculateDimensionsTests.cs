@@ -17,6 +17,7 @@ using Nop.Services.Logging;
 using Nop.Services.Orders;
 using Nop.Services.Plugins;
 using Nop.Services.Shipping;
+using Nop.Services.Shipping.Pickup;
 using Nop.Tests;
 using NUnit.Framework;
 
@@ -41,6 +42,8 @@ namespace Nop.Services.Tests.Shipping
         private ShoppingCartSettings _shoppingCartSettings;
         private ShippingService _shippingService;
         private Mock<IPriceCalculationService> _priceCalcService;
+        private ProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private ProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
 
         [SetUp]
         public new void SetUp()
@@ -70,7 +73,9 @@ namespace Nop.Services.Tests.Shipping
             var webHelper = new Mock<IWebHelper>();
 
             var pluginService = new PluginService(customerService.Object, loger.Object , CommonHelper.DefaultFileProvider, webHelper.Object);
-
+            _pickUpProviderManager = new ProviderManager<IPickupPointProvider>(pluginService);
+            _shippingProviderManager = new ProviderManager<IShippingRateComputationMethod>(pluginService);
+            
             _localizationService = new Mock<ILocalizationService>();
             _addressService = new Mock<IAddressService>();
             _genericAttributeService = new Mock<IGenericAttributeService>();
@@ -93,6 +98,8 @@ namespace Nop.Services.Tests.Shipping
                 _priceCalcService.Object,
                 _productAttributeParser.Object,
                 _productService.Object,
+                _pickUpProviderManager,
+                _shippingProviderManager,
                 _shippingMethodRepository.Object,
                 _warehouseRepository.Object,
                 _storeContext.Object,

@@ -17,6 +17,7 @@ using Nop.Services.Logging;
 using Nop.Services.Orders;
 using Nop.Services.Plugins;
 using Nop.Services.Shipping;
+using Nop.Services.Shipping.Pickup;
 using Nop.Tests;
 using NUnit.Framework;
 
@@ -41,6 +42,8 @@ namespace Nop.Services.Tests.Shipping
         private Store _store;
         private Mock<IStoreContext> _storeContext;
         private Mock<IPriceCalculationService> _priceCalcService;
+        private ProviderManager<IPickupPointProvider> _pickUpProviderManager;
+        private ProviderManager<IShippingRateComputationMethod> _shippingProviderManager;
 
         [SetUp]
         public new void SetUp()
@@ -70,6 +73,9 @@ namespace Nop.Services.Tests.Shipping
 
             var pluginService = new PluginService(customerService.Object, loger.Object , CommonHelper.DefaultFileProvider, webHelper.Object);
 
+            _pickUpProviderManager = new ProviderManager<IPickupPointProvider>(pluginService);
+            _shippingProviderManager = new ProviderManager<IShippingRateComputationMethod>(pluginService);
+
             _localizationService = new Mock<ILocalizationService>();
             _addressService = new Mock<IAddressService>();
             _genericAttributeService = new Mock<IGenericAttributeService>();
@@ -92,6 +98,8 @@ namespace Nop.Services.Tests.Shipping
                 _priceCalcService.Object,
                 _productAttributeParser.Object,
                 _productService.Object,
+                _pickUpProviderManager,
+                _shippingProviderManager,
                 _shippingMethodRepository.Object,
                 _warehouseRepository.Object,
                 _storeContext.Object,
@@ -102,7 +110,7 @@ namespace Nop.Services.Tests.Shipping
         [Test]
         public void Can_load_shippingRateComputationMethods()
         {
-            var srcm = _shippingService.LoadAllShippingRateComputationMethods();
+            var srcm = _shippingProviderManager.LoadAllProviders();
             srcm.ShouldNotBeNull();
             srcm.Any().ShouldBeTrue();
         }
@@ -110,14 +118,14 @@ namespace Nop.Services.Tests.Shipping
         [Test]
         public void Can_load_shippingRateComputationMethod_by_systemKeyword()
         {
-            var srcm = _shippingService.LoadShippingRateComputationMethodBySystemName("FixedRateTestShippingRateComputationMethod");
+            var srcm = _shippingProviderManager.LoadProviderBySystemName("FixedRateTestShippingRateComputationMethod");
             srcm.ShouldNotBeNull();
         }
 
         [Test]
         public void Can_load_active_shippingRateComputationMethods()
         {
-            var srcm = _shippingService.LoadActiveShippingRateComputationMethods();
+            var srcm =_shippingProviderManager.LoadActiveProviders(_shippingSettings.ActiveShippingRateComputationMethodSystemNames);
             srcm.ShouldNotBeNull();
             srcm.Any().ShouldBeTrue();
         }
