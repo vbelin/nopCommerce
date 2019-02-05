@@ -103,6 +103,9 @@ namespace Nop.Services.Plugins
         /// <returns>Provider</returns>
         public virtual TPlugin LoadProviderBySystemName(string systemName, Customer customer = null)
         {
+            if (systemName == null)
+                return null;
+
             if (_providersBySysName.ContainsKey(systemName)) 
                 return _providersBySysName[systemName];
 
