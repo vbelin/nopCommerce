@@ -53,7 +53,7 @@
             </div>
         }
         <div class="description">
-            @Html.Raw(Model.ShortDescription)
+            @Html.Raw(Html.Encode(Model.ShortDescription))
         </div>
         <div class="add-info">
             @await Component.InvokeAsync("Widget", new { widgetZone = PublicWidgetZones.ProductBoxAddinfoBefore, additionalData = Model })

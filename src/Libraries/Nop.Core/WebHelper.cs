@@ -303,7 +303,7 @@ namespace Nop.Core
                 return url;
 
             //get current query parameters
-            var uri = new Uri(url);
+            var uri = new Uri(WebUtility.UrlDecode(url));
             var queryParameters = QueryHelpers.ParseQuery(uri.Query);
 
             //and add passed one
@@ -339,7 +339,7 @@ namespace Nop.Core
                 return url;
 
             //get current query parameters
-            var uri = new Uri(url);
+            var uri = new Uri(WebUtility.UrlDecode(url));
             var queryParameters = QueryHelpers.ParseQuery(uri.Query)
                 .SelectMany(parameter => parameter.Value, (parameter, queryValue) => new KeyValuePair<string, string>(parameter.Key, queryValue))
                 .ToList();
