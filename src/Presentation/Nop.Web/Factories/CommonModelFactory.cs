@@ -86,6 +86,7 @@ namespace Nop.Web.Factories
         private readonly LocalizationSettings _localizationSettings;
         private readonly NewsSettings _newsSettings;
         private readonly SitemapSettings _sitemapSettings;
+        private readonly SitemapXmlSettings _sitemapXmlSettings;
         private readonly StoreInformationSettings _storeInformationSettings;
         private readonly VendorSettings _vendorSettings;
 
@@ -131,6 +132,7 @@ namespace Nop.Web.Factories
             LocalizationSettings localizationSettings,
             NewsSettings newsSettings,
             SitemapSettings sitemapSettings,
+            SitemapXmlSettings sitemapXmlSettings,
             StoreInformationSettings storeInformationSettings,
             VendorSettings vendorSettings)
         {
@@ -160,6 +162,7 @@ namespace Nop.Web.Factories
             this._productTagService = productTagService;
             this._sitemapGenerator = sitemapGenerator;
             this._sitemapSettings = sitemapSettings;
+            this._sitemapXmlSettings = sitemapXmlSettings;
             this._shoppingCartService = shoppingCartService;
             this._cacheManager = cacheManager;
             this._storeContext = storeContext;
@@ -869,7 +872,7 @@ namespace Nop.Web.Factories
                 sb.Append("User-agent: *");
                 sb.Append(newLine);
                 //sitemaps
-                if (_sitemapSettings.SitemapEnabled)
+                if (_sitemapXmlSettings.SitemapXmlEnabled)
                 {
                     if (_localizationSettings.SeoFriendlyUrlsForLanguagesEnabled)
                     {

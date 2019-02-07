@@ -311,6 +311,9 @@ set @resources='
   <LocaleResource Name="Sitemap.News">
     <Value>News</Value>
   </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.Sitemap.Instructions">
+    <Value><![CDATA[<p>These settings do not apply to sitemap.xml, only for your site map. You can configure generation for sitemap.xml in advanced settings.</p>]]></Value>
+  </LocaleResource> 
 </Language>'
 
 CREATE TABLE #LocaleStringResourceTmp
@@ -1117,6 +1120,42 @@ GO
 DECLARE @settingNameList TABLE (sname nvarchar(200));
 INSERT @settingNameList(sname) 
 VALUES 
+	('sitemapsettings.sitemapincludetopics'),
+	('sitemapsettings.sitemapincludeblogposts'),
+	('sitemapsettings.sitemapincludenews');
+
+DECLARE cur_settingName CURSOR FOR 
+	SELECT sname FROM @settingNameList
+DECLARE @settingName nvarchar(200)
+
+OPEN cur_settingName
+FETCH NEXT FROM cur_settingName INTO @settingName
+WHILE @@FETCH_STATUS = 0
+BEGIN
+	IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = @settingName)
+	BEGIN
+		INSERT [Setting] ([Name], [Value], [StoreId])
+		VALUES (@settingName, N'True', 0)
+	END
+	FETCH NEXT FROM cur_settingName INTO @settingName
+END
+CLOSE cur_settingName
+DEALLOCATE cur_settingName
+GO
+
+--add new settings (#3236)
+DECLARE @settingNameList TABLE (sname nvarchar(200));
+INSERT @settingNameList(sname) 
+VALUES 
+	('sitemapxmlsettings.sitemapxmlenabled'), 
+	('sitemapxmlsettings.sitemapxmlincludeblogposts'), 
+	('sitemapxmlsettings.sitemapxmlincludecategories'),
+	('sitemapxmlsettings.sitemapxmlincludecustomurls'),
+	('sitemapxmlsettings.sitemapxmlincludemanufacturers'),
+	('sitemapxmlsettings.sitemapxmlincludeproducts'),
+	('sitemapxmlsettings.sitemapxmlincludeproducttags'),
+	('sitemapxmlsettings.sitemapxmlincludetopics'),
+	('sitemapxmlsettings.sitemapxmlincludenews'),
 	('sitemapsettings.sitemapincludetopics'),
 	('sitemapsettings.sitemapincludeblogposts'),
 	('sitemapsettings.sitemapincludenews');
