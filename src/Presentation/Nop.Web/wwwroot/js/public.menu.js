@@ -68,7 +68,7 @@
                 let listItems = selfTop.categoryList(result, true);
                 if (listItems.length === 0) { $(catSel).addClass("loaded"); return; }
 
-                let ul = $('<ul/>', { 'class': 'sublist' }).appendTo($(catSel));
+                $('<ul/>', { 'class': 'sublist' }).appendTo($(catSel));
 
                 $(catSel).addClass("loaded");
 
@@ -138,10 +138,10 @@
 
         let li = $('<li/>');
 
-        let a = $('<a/>', { 'href': data.Route, 'text': data.Name }).appendTo(li);
+        $('<a/>', { 'href': data.Route, 'text': data.Name }).appendTo(li);
 
         if (data.HaveSubCategories) {
-            let div = $('<div/>', { 'class': 'sublist-toggle' }).appendTo(li);
+            $('<div/>', { 'class': 'sublist-toggle' }).appendTo(li);
             li.on('mouseenter', function () {
                 $(this).addClass("inside");
                 selfTop.getSubRoot(data.Id, true);
@@ -158,7 +158,7 @@
 
         let li = $('<li/>');
 
-        let a = $('<a/>', { 'href': data.Route, 'text': data.Name }).appendTo(li);
+        $('<a/>', { 'href': data.Route, 'text': data.Name }).appendTo(li);
 
         if (data.HaveSubCategories) {
             let div = $('<div/>', { 'class': 'sublist-toggle' }).appendTo(li);
