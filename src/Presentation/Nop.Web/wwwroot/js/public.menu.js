@@ -35,19 +35,11 @@
 
     getSubRoot: function (id, isTopMenu) {
         let self = this;
-        let start = new Date().getTime();
         if (isTopMenu) {
-            let tmp = self.getTopMenuSubRoot(id);
-            let end = new Date().getTime();
-            console.log('SecondWay: ' + (end - start) + 'ms');
-            return tmp;
-
+            return self.getTopMenuSubRoot(id);
         }
         else {
-            let tmp = self.getMobileMenuSubRoot(id);
-            let end = new Date().getTime();
-            console.log('SecondWay: ' + (end - start) + 'ms');
-            return tmp;
+            return self.getMobileMenuSubRoot(id);
         }
     },
 
@@ -156,16 +148,22 @@
     mobileMenuCategoryLine: function (data) {
         let selfMobile = this;
 
-        let li = $('<li/>');
+        let li = document.createElement('li');
 
-        $('<a/>', { 'href': data.Route, 'text': data.Name }).appendTo(li);
+        let a = document.createElement('a');
+        a.href = data.Route;
+        a.text = data.Name;
+
+        li.appendChild(a);
 
         if (data.HaveSubCategories) {
-            let div = $('<div/>', { 'class': 'sublist-toggle' }).appendTo(li);
-            div.on("click", function () { selfMobile.getSubRoot(data.Id, false); });
+            let div = document.createElement('div');
+            div.classList.add('sublist-toggle');
+            div.addEventListener("click", function () { selfMobile.getSubRoot(data.Id, false); });
+            li.appendChild(div);
         }
 
-        li.attr(this.topMenuLineAttr, data.Id);
+        li.setAttribute(this.mobileMenuLineAttr, data.Id);
 
         return li;
     },
