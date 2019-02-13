@@ -194,7 +194,7 @@ namespace Nop.Services.Media
             var currentFiles = _fileProvider.GetFiles(_fileProvider.GetAbsolutePath(NopMediaDefaults.ImageThumbsPath), filter, false);
             foreach (var currentFileName in currentFiles)
             {
-                var thumbFilePath = GetThumbLocalPath(currentFileName);
+                var thumbFilePath = GetThumbLocalPath(currentFileName, _fileProvider.GetAbsolutePath(NopMediaDefaults.ImageThumbsPath));
                 _fileProvider.DeleteFile(thumbFilePath);
             }
         }
@@ -205,10 +205,8 @@ namespace Nop.Services.Media
         /// <param name="thumbFileName">Filename</param>
         /// <param name="thumbsPath">Thumb path</param>
         /// <returns>Local picture thumb path</returns>
-        protected virtual string GetThumbLocalPath(string thumbFileName, string thumbsPath = "")
+        protected virtual string GetThumbLocalPath(string thumbFileName, string thumbsPath)
         {
-            var thumbsDirectoryPath = _fileProvider.GetAbsolutePath(string.IsNullOrEmpty(thumbsPath) ? NopMediaDefaults.ImageThumbsPath : thumbsPath.TrimStart('~').Trim('/').Replace("/", @"\"));
-
             if (_mediaSettings.MultipleThumbDirectories)
             {
                 //get the first two letters of the file name
@@ -216,12 +214,12 @@ namespace Nop.Services.Media
                 if (fileNameWithoutExtension != null && fileNameWithoutExtension.Length > NopMediaDefaults.MultipleThumbDirectoriesLength)
                 {
                     var subDirectoryName = fileNameWithoutExtension.Substring(0, NopMediaDefaults.MultipleThumbDirectoriesLength);
-                    thumbsDirectoryPath = _fileProvider.GetAbsolutePath(NopMediaDefaults.ImageThumbsPath, subDirectoryName);
-                    _fileProvider.CreateDirectory(thumbsDirectoryPath);
+                    thumbsPath = _fileProvider.GetAbsolutePath(NopMediaDefaults.ImageThumbsPath, subDirectoryName);
+                    _fileProvider.CreateDirectory(thumbsPath);
                 }
             }
 
-            var thumbFilePath = _fileProvider.Combine(thumbsDirectoryPath, thumbFileName);
+            var thumbFilePath = _fileProvider.Combine(thumbsPath, thumbFileName);
             return thumbFilePath;
         }
 
@@ -480,7 +478,7 @@ namespace Nop.Services.Media
             {
                 var fileExtension = _fileProvider.GetFileExtension(filePath);
                 var thumbFileName = $"{_fileProvider.GetFileNameWithoutExtension(filePath)}_{targetSize}{fileExtension}";
-                var thumbFilePath = GetThumbLocalPath(thumbFileName);
+                var thumbFilePath = GetThumbLocalPath(thumbFileName, _fileProvider.GetAbsolutePath(NopMediaDefaults.ImageThumbsPath));
                 if (!GeneratedThumbExists(thumbFilePath, thumbFileName))
                 {
                     using (var image = Image.Load(filePath, out var imageFormat))
@@ -580,7 +578,9 @@ namespace Nop.Services.Media
                     : $"{picture.Id:0000000}_{targetSize}.{lastPart}";
             }
 
-            var thumbFilePath = GetThumbLocalPath(thumbFileName, picture.VirtualPath);
+            var thumbsDirectoryPath = _fileProvider.GetAbsolutePath(picture.VirtualPath.TrimStart('~').Trim('/').Replace("/", @"\"));
+
+            var thumbFilePath = GetThumbLocalPath(thumbFileName, thumbsDirectoryPath);
 
             //the named mutex helps to avoid creating the same files in different threads,
             //and does not decrease performance significantly, because the code is blocked only for the specific file.
@@ -638,7 +638,7 @@ namespace Nop.Services.Media
             if (string.IsNullOrEmpty(url))
                 return string.Empty;
 
-            return GetThumbLocalPath(_fileProvider.GetFileName(url));
+            return GetThumbLocalPath(_fileProvider.GetFileName(url), _fileProvider.GetAbsolutePath(NopMediaDefaults.ImageThumbsPath));
         }
 
         #endregion
@@ -773,10 +773,10 @@ namespace Nop.Services.Media
         /// Inserts a picture
         /// </summary>
         /// <param name="formFile">Form file</param>
-        /// <param name="qqFileName">File name which will be use if IFormFile.FileName not present</param>
+        /// <param name="defaultFileName">File name which will be use if IFormFile.FileName not present</param>
         /// <param name="virtualPath">Virtual path</param>
         /// <returns>Picture</returns>
-        public virtual Picture InsertPicture(IFormFile formFile, string qqFileName = "", string virtualPath = "")
+        public virtual Picture InsertPicture(IFormFile formFile, string defaultFileName = "", string virtualPath = "")
         {
             var imgExt = new List<string>
             {
@@ -794,8 +794,8 @@ namespace Nop.Services.Media
             } as IReadOnlyCollection<string>;
 
             var fileName = formFile.FileName;
-            if (string.IsNullOrEmpty(fileName) && !string.IsNullOrEmpty(qqFileName))
-                fileName = qqFileName;
+            if (string.IsNullOrEmpty(fileName) && !string.IsNullOrEmpty(defaultFileName))
+                fileName = defaultFileName;
 
             //remove path (passed in IE)
             fileName = _fileProvider.GetFileName(fileName);

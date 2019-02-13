@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Nop.Core;
 using Nop.Core.Infrastructure;
 using Nop.Services.Media;
-using Nop.Services.RoxyFileman;
+using Nop.Services.Media.RoxyFileman;
 using Nop.Services.Security;
 using Nop.Web.Framework.Mvc.Filters;
 
@@ -53,7 +53,7 @@ namespace Nop.Web.Areas.Admin.Controllers
         /// </summary>
         public virtual void CreateConfiguration()
         {
-            var filePath = _roxyFilemanService.ConfigurationFilePath;
+            var filePath = _roxyFilemanService.GetConfigurationFilePath();
 
             //create file if not exists
             _fileProvider.CreateFile(filePath);

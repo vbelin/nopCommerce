@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Nop.Core.Domain.Media;
 using Nop.Core.Infrastructure;
-using Nop.Services.Media;
+using SixLabors.ImageSharp;
 
-namespace Nop.Services.RoxyFileman
+namespace Nop.Services.Media.RoxyFileman
 {
     /// <summary>
     /// Database RoxyFileman service
@@ -150,6 +150,13 @@ namespace Nop.Services.RoxyFileman
                 int.TryParse(GetSetting("MAX_IMAGE_WIDTH"), out var width);
                 int.TryParse(GetSetting("MAX_IMAGE_HEIGHT"), out var height);
 
+                var image = Image.Load(picture.PictureBinary.BinaryData);
+
+                if (image.Width < width)
+                    width = image.Width;
+                if (image.Height < height)
+                    height = image.Height;
+
                 //save picture to folder if its not exists
                 _pictureService.GetPictureUrl(picture, width > height ? width : height);
             }
@@ -173,7 +180,7 @@ namespace Nop.Services.RoxyFileman
                 new RoxyFilemanFormFile(picture, _fileProvider.GetFileExtension(filePath)),
                 string.Empty, _fileProvider.GetVirtualPath(destinationPath));
 
-            await HttpContext.Response.WriteAsync(GetSuccessResponse());
+            await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
         }
 
         /// <summary>
@@ -295,7 +302,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 var fullPath = GetFullPath(GetVirtualPath(directoryPath));
-                foreach (var formFile in HttpContext.Request.Form.Files)
+                foreach (var formFile in GetHttpContext().Request.Form.Files)
                 {
                     var fileName = formFile.FileName;
                     if (CanHandleFile(fileName))
@@ -332,10 +339,10 @@ namespace Nop.Services.RoxyFileman
                 if (hasErrors)
                     result = GetErrorResponse(GetLanguageResource("E_UploadNotAll"));
 
-                await HttpContext.Response.WriteAsync(result);
+                await GetHttpContext().Response.WriteAsync(result);
             }
             else
-                await HttpContext.Response.WriteAsync($"<script>parent.fileUploaded({result});</script>");
+                await GetHttpContext().Response.WriteAsync($"<script>parent.fileUploaded({result});</script>");
         }
 
         #endregion

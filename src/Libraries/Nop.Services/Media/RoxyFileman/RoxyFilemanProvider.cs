@@ -2,9 +2,8 @@
 using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.Primitives;
 using Nop.Core.Infrastructure;
-using Nop.Services.Media;
 
-namespace Nop.Services.RoxyFileman
+namespace Nop.Services.Media.RoxyFileman
 {
     /// <summary>
     /// Represent a file provider for roxyFileman images folder

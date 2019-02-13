@@ -1,4 +1,4 @@
-﻿namespace Nop.Services.RoxyFileman
+﻿namespace Nop.Services.Media.RoxyFileman
 {
     /// <summary>
     /// Represents default values related to roxyFileman

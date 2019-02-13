@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Nop.Services.RoxyFileman
+namespace Nop.Services.Media.RoxyFileman
 {
     /// <summary>
     /// RoxyFileman service interface
@@ -148,6 +148,6 @@ namespace Nop.Services.RoxyFileman
         /// <summary>
         /// Gets a configuration file path
         /// </summary>
-        string ConfigurationFilePath { get; }
+        string GetConfigurationFilePath();
     }
 }

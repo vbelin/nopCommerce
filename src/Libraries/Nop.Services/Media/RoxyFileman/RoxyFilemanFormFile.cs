@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Nop.Core.Domain.Media;
 
-namespace Nop.Services.RoxyFileman
+namespace Nop.Services.Media.RoxyFileman
 {
     /// <summary>
     /// Represents the roxyFileman fake HttpRequest file
@@ -58,10 +58,14 @@ namespace Nop.Services.RoxyFileman
         /// </summary>
         public string ContentDisposition => string.Empty;
 
-        /// <summary>Gets the header dictionary of the uploaded file.</summary>
+        /// <summary>
+        /// Gets the header dictionary of the uploaded file.
+        /// </summary>
         public IHeaderDictionary Headers => null;
 
-        /// <summary>Gets the file length in bytes.</summary>
+        /// <summary>
+        /// Gets the file length in bytes.
+        /// </summary>
         public long Length => _picture.PictureBinary.BinaryData.Length;
 
         /// <summary>

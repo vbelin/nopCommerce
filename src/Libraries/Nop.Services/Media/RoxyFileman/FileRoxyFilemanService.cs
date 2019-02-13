@@ -16,7 +16,7 @@ using Microsoft.Extensions.Primitives;
 using Nop.Core;
 using Nop.Core.Infrastructure;
 
-namespace Nop.Services.RoxyFileman
+namespace Nop.Services.Media.RoxyFileman
 {
     /// <summary>
     /// File RoxyFileman service
@@ -75,7 +75,7 @@ namespace Nop.Services.RoxyFileman
 
             var sessionPathKey = GetSetting("SESSION_PATH_KEY");
             if (!string.IsNullOrEmpty(sessionPathKey))
-                filesRoot = HttpContext.Session.GetString(sessionPathKey);
+                filesRoot = GetHttpContext().Session.GetString(sessionPathKey);
 
             if (string.IsNullOrEmpty(filesRoot))
                 filesRoot = NopRoxyFilemanDefaults.DefaultRootDirectory;
@@ -400,6 +400,11 @@ namespace Nop.Services.RoxyFileman
             }
         }
 
+        protected virtual HttpContext GetHttpContext()
+        {
+            return _httpContextAccessor.HttpContext;
+        }
+
         #endregion
 
         #region Methods
@@ -420,16 +425,16 @@ namespace Nop.Services.RoxyFileman
             allDirectories.Insert(0, rootDirectoryPath);
 
             var localPath = GetFullPath(null);
-            await HttpContext.Response.WriteAsync("[");
+            await GetHttpContext().Response.WriteAsync("[");
             for (var i = 0; i < allDirectories.Count; i++)
             {
                 var directoryPath = (string)allDirectories[i];
-                await HttpContext.Response.WriteAsync($"{{\"p\":\"/{directoryPath.Replace(localPath, string.Empty).Replace("\\", "/").TrimStart('/')}\",\"f\":\"{GetFiles(directoryPath, type).Count}\",\"d\":\"{_fileProvider.GetDirectories(directoryPath).Length}\"}}");
+                await GetHttpContext().Response.WriteAsync($"{{\"p\":\"/{directoryPath.Replace(localPath, string.Empty).Replace("\\", "/").TrimStart('/')}\",\"f\":\"{GetFiles(directoryPath, type).Count}\",\"d\":\"{_fileProvider.GetDirectories(directoryPath).Length}\"}}");
                 if (i < allDirectories.Count - 1)
-                    await HttpContext.Response.WriteAsync(",");
+                    await GetHttpContext().Response.WriteAsync(",");
             }
 
-            await HttpContext.Response.WriteAsync("]");
+            await GetHttpContext().Response.WriteAsync("]");
         }
 
         /// <summary>
@@ -443,7 +448,7 @@ namespace Nop.Services.RoxyFileman
             directoryPath = GetVirtualPath(directoryPath);
             var files = GetFiles(GetFullPath(directoryPath), type);
 
-            await HttpContext.Response.WriteAsync("[");
+            await GetHttpContext().Response.WriteAsync("[");
             for (var i = 0; i < files.Count; i++)
             {
                 var width = 0;
@@ -462,13 +467,13 @@ namespace Nop.Services.RoxyFileman
                     }
                 }
 
-                await HttpContext.Response.WriteAsync($"{{\"p\":\"{directoryPath.TrimEnd('/')}/{_fileProvider.GetFileName(physicalPath)}\",\"t\":\"{Math.Ceiling(GetTimestamp(_fileProvider.GetLastWriteTime(physicalPath)))}\",\"s\":\"{_fileProvider.FileLength(physicalPath)}\",\"w\":\"{width}\",\"h\":\"{height}\"}}");
+                await GetHttpContext().Response.WriteAsync($"{{\"p\":\"{directoryPath.TrimEnd('/')}/{_fileProvider.GetFileName(physicalPath)}\",\"t\":\"{Math.Ceiling(GetTimestamp(_fileProvider.GetLastWriteTime(physicalPath)))}\",\"s\":\"{_fileProvider.FileLength(physicalPath)}\",\"w\":\"{width}\",\"h\":\"{height}\"}}");
 
                 if (i < files.Count - 1)
-                    await HttpContext.Response.WriteAsync(",");
+                    await GetHttpContext().Response.WriteAsync(",");
             }
 
-            await HttpContext.Response.WriteAsync("]");
+            await GetHttpContext().Response.WriteAsync("]");
         }
 
         /// <summary>
@@ -491,7 +496,7 @@ namespace Nop.Services.RoxyFileman
 
             CopyDirectory(directoryPath, newDirectoryPath);
 
-            await HttpContext.Response.WriteAsync(GetSuccessResponse());
+            await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
         }
 
         /// <summary>
@@ -512,7 +517,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 _fileProvider.FileCopy(filePath, _fileProvider.Combine(destinationPath, newFileName));
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -537,7 +542,7 @@ namespace Nop.Services.RoxyFileman
                 var path = _fileProvider.Combine(parentDirectoryPath, name);
                 _fileProvider.CreateDirectory(path);
 
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -566,7 +571,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 _fileProvider.DeleteDirectory(path);
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -588,7 +593,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 _fileProvider.DeleteFile(path);
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -606,10 +611,10 @@ namespace Nop.Services.RoxyFileman
             var filePath = GetFullPath(GetVirtualPath(path));
             if (_fileProvider.FileExists(filePath))
             {
-                HttpContext.Response.Clear();
-                HttpContext.Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{WebUtility.UrlEncode(_fileProvider.GetFileName(filePath))}\"");
-                HttpContext.Response.ContentType = MimeTypes.ApplicationForceDownload;
-                await HttpContext.Response.SendFileAsync(filePath);
+                GetHttpContext().Response.Clear();
+                GetHttpContext().Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{WebUtility.UrlEncode(_fileProvider.GetFileName(filePath))}\"");
+                GetHttpContext().Response.ContentType = MimeTypes.ApplicationForceDownload;
+                await GetHttpContext().Response.SendFileAsync(filePath);
             }
         }
 
@@ -646,7 +651,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 _fileProvider.DirectoryMove(fullSourcePath, destinationPath);
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -678,7 +683,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 _fileProvider.FileMove(fullSourcePath, destinationPath);
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -710,7 +715,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 _fileProvider.DirectoryMove(fullSourcePath, destinationDirectory);
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -738,7 +743,7 @@ namespace Nop.Services.RoxyFileman
                 var destinationPath = _fileProvider.Combine(_fileProvider.GetDirectoryName(fullSourcePath), newName);
                 _fileProvider.FileMove(fullSourcePath, destinationPath);
 
-                await HttpContext.Response.WriteAsync(GetSuccessResponse());
+                await GetHttpContext().Response.WriteAsync(GetSuccessResponse());
             }
             catch
             {
@@ -769,10 +774,10 @@ namespace Nop.Services.RoxyFileman
 
             ZipFile.CreateFromDirectory(fullPath, zipPath, CompressionLevel.Fastest, true);
 
-            HttpContext.Response.Clear();
-            HttpContext.Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{WebUtility.UrlEncode(zipName)}\"");
-            HttpContext.Response.ContentType = MimeTypes.ApplicationForceDownload;
-            await HttpContext.Response.SendFileAsync(zipPath);
+            GetHttpContext().Response.Clear();
+            GetHttpContext().Response.Headers.Add("Content-Disposition", $"attachment; filename=\"{WebUtility.UrlEncode(zipName)}\"");
+            GetHttpContext().Response.ContentType = MimeTypes.ApplicationForceDownload;
+            await GetHttpContext().Response.SendFileAsync(zipPath);
 
             _fileProvider.DeleteFile(zipPath);
         }
@@ -789,7 +794,7 @@ namespace Nop.Services.RoxyFileman
             try
             {
                 directoryPath = GetFullPath(GetVirtualPath(directoryPath));
-                foreach (var formFile in HttpContext.Request.Form.Files)
+                foreach (var formFile in GetHttpContext().Request.Form.Files)
                 {
                     var fileName = formFile.FileName;
                     if (CanHandleFile(fileName))
@@ -825,10 +830,10 @@ namespace Nop.Services.RoxyFileman
                 if (hasErrors)
                     result = GetErrorResponse(GetLanguageResource("E_UploadNotAll"));
 
-                await HttpContext.Response.WriteAsync(result);
+                await GetHttpContext().Response.WriteAsync(result);
             }
             else
-                await HttpContext.Response.WriteAsync($"<script>parent.fileUploaded({result});</script>");
+                await GetHttpContext().Response.WriteAsync($"<script>parent.fileUploaded({result});</script>");
         }
 
         /// <summary>
@@ -838,8 +843,8 @@ namespace Nop.Services.RoxyFileman
         public virtual void CreateThumbnail(string path)
         {
             path = GetFullPath(GetVirtualPath(path));
-            int.TryParse(HttpContext.Request.Query["width"].ToString().Replace("px", string.Empty), out var width);
-            int.TryParse(HttpContext.Request.Query["height"].ToString().Replace("px", string.Empty), out var height);
+            int.TryParse(GetHttpContext().Request.Query["width"].ToString().Replace("px", string.Empty), out var width);
+            int.TryParse(GetHttpContext().Request.Query["height"].ToString().Replace("px", string.Empty), out var height);
 
             using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
@@ -881,9 +886,9 @@ namespace Nop.Services.RoxyFileman
 
                     using (var cropImg = image.Clone(new Rectangle(cropX, cropY, cropWidth, cropHeight), PixelFormat.DontCare))
                     {
-                        HttpContext.Response.Headers.Add("Content-Type", MimeTypes.ImagePng);
-                        cropImg.GetThumbnailImage(width, height, () => false, IntPtr.Zero).Save(HttpContext.Response.Body, ImageFormat.Png);
-                        HttpContext.Response.Body.Close();
+                        GetHttpContext().Response.Headers.Add("Content-Type", MimeTypes.ImagePng);
+                        cropImg.GetThumbnailImage(width, height, () => false, IntPtr.Zero).Save(GetHttpContext().Response.Body, ImageFormat.Png);
+                        GetHttpContext().Response.Body.Close();
                     }
                 }
             }
@@ -895,9 +900,9 @@ namespace Nop.Services.RoxyFileman
         /// <returns>True or false</returns>
         public virtual bool IsAjaxRequest()
         {
-            return HttpContext.Request.Form != null &&
-                   !StringValues.IsNullOrEmpty(HttpContext.Request.Form["method"]) &&
-                   HttpContext.Request.Form["method"] == "ajax";
+            return GetHttpContext().Request.Form != null &&
+                   !StringValues.IsNullOrEmpty(GetHttpContext().Request.Form["method"]) &&
+                   GetHttpContext().Request.Form["method"] == "ajax";
         }
 
         /// <summary>
@@ -926,16 +931,13 @@ namespace Nop.Services.RoxyFileman
             return GetResponse("error", message);
         }
 
-        #endregion
-
-        #region Properties
-
         /// <summary>
         /// Gets a configuration file path
         /// </summary>
-        public virtual string ConfigurationFilePath => GetFullPath(NopRoxyFilemanDefaults.ConfigurationFile);
-
-        protected virtual HttpContext HttpContext => _httpContextAccessor.HttpContext;
+        public virtual string GetConfigurationFilePath()
+        {
+            return GetFullPath(NopRoxyFilemanDefaults.ConfigurationFile);
+        }
 
         #endregion
     }

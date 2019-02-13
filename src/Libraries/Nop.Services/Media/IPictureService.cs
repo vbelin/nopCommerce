@@ -131,10 +131,10 @@ namespace Nop.Services.Media
         /// Inserts a picture
         /// </summary>
         /// <param name="formFile">Form file</param>
-        /// <param name="qqFileName">File name which will be use if IFormFile.FileName not present</param>
+        /// <param name="defaultFileName">File name which will be use if IFormFile.FileName not present</param>
         /// <param name="virtualPath">Virtual path</param>
         /// <returns>Picture</returns>
-        Picture InsertPicture(IFormFile formFile, string qqFileName = "", string virtualPath = "");
+        Picture InsertPicture(IFormFile formFile, string defaultFileName = "", string virtualPath = "");
 
         /// <summary>
         /// Updates the picture

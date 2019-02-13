@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using Nop.Core;
-using Nop.Core.Infrastructure;
 using Nop.Services.Media;
 using Nop.Web.Framework.Mvc.Filters;
 
@@ -12,20 +10,14 @@ namespace Nop.Web.Areas.Admin.Controllers
     {
         #region Fields
 
-        private readonly IDownloadService _downloadService;
-        private readonly INopFileProvider _fileProvider;
         private readonly IPictureService _pictureService;
 
         #endregion
 
         #region Ctor
 
-        public PictureController(IDownloadService downloadService,
-            INopFileProvider fileProvider,
-            IPictureService pictureService)
+        public PictureController(IPictureService pictureService)
         {
-            this._downloadService = downloadService;
-            this._fileProvider = fileProvider;
             this._pictureService = pictureService;
         }
 
