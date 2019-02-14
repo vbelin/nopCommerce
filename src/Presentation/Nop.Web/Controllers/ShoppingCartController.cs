@@ -366,7 +366,7 @@ namespace Nop.Web.Controllers
             var productAttributes = _productAttributeService.GetProductAttributeMappingsByProductId(product.Id);
             foreach (var attribute in productAttributes)
             {
-                var controlId = $"product_attribute_{attribute.Id}";
+                var controlId = $"{NopAttributePrefixDefaults.Product}{attribute.Id}";
                 switch (attribute.AttributeControlType)
                 {
                     case AttributeControlType.DropdownList:
@@ -382,7 +382,7 @@ namespace Nop.Web.Controllers
                                 {
                                     //get quantity entered by customer
                                     var quantity = 1;
-                                    var quantityStr = form[$"product_attribute_{attribute.Id}_{selectedAttributeId}_qty"];
+                                    var quantityStr = form[$"{NopAttributePrefixDefaults.Product}{attribute.Id}_{selectedAttributeId}_qty"];
                                     if (!StringValues.IsNullOrEmpty(quantityStr) &&
                                         (!int.TryParse(quantityStr, out quantity) || quantity < 1))
                                         errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
@@ -406,7 +406,7 @@ namespace Nop.Web.Controllers
                                     {
                                         //get quantity entered by customer
                                         var quantity = 1;
-                                        var quantityStr = form[$"product_attribute_{attribute.Id}_{item}_qty"];
+                                        var quantityStr = form[$"{NopAttributePrefixDefaults.Product}{attribute.Id}_{item}_qty"];
                                         if (!StringValues.IsNullOrEmpty(quantityStr) &&
                                             (!int.TryParse(quantityStr, out quantity) || quantity < 1))
                                             errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
@@ -429,7 +429,7 @@ namespace Nop.Web.Controllers
                             {
                                 //get quantity entered by customer
                                 var quantity = 1;
-                                var quantityStr = form[$"product_attribute_{attribute.Id}_{selectedAttributeId}_qty"];
+                                var quantityStr = form[$"{NopAttributePrefixDefaults.Product}{attribute.Id}_{selectedAttributeId}_qty"];
                                 if (!StringValues.IsNullOrEmpty(quantityStr) &&
                                     (!int.TryParse(quantityStr, out quantity) || quantity < 1))
                                     errors.Add(_localizationService.GetResource("ShoppingCart.QuantityShouldPositive"));
@@ -954,6 +954,27 @@ namespace Nop.Web.Controllers
             var mpn = _productService.FormatMpn(product, attributeXml);
             var gtin = _productService.FormatGtin(product, attributeXml);
 
+            // calculating weight adjustment
+            var attributeValues = _productAttributeParser.ParseProductAttributeValues(attributeXml);
+            var totalWeight = product.BasepriceAmount;
+
+            foreach (var attributeValue in attributeValues)
+            {
+                switch (attributeValue.AttributeValueType)
+                {
+                    case AttributeValueType.Simple:
+                        //simple attribute
+                        totalWeight += attributeValue.WeightAdjustment;
+                        break;
+                    case AttributeValueType.AssociatedToProduct:
+                        //bundled product
+                        var associatedProduct = _productService.GetProductById(attributeValue.AssociatedProductId);
+                        if (associatedProduct != null)
+                            totalWeight += associatedProduct.BasepriceAmount * attributeValue.Quantity;
+                        break;
+                }
+            }
+
             //price
             var price = "";
             //base price
@@ -971,7 +992,7 @@ namespace Nop.Web.Controllers
                 var finalPriceWithDiscountBase = _taxService.GetProductPrice(product, finalPrice, out decimal _);
                 var finalPriceWithDiscount = _currencyService.ConvertFromPrimaryStoreCurrency(finalPriceWithDiscountBase, _workContext.WorkingCurrency);
                 price = _priceFormatter.FormatPrice(finalPriceWithDiscount);
-                basepricepangv = _priceFormatter.FormatBasePrice(product, finalPriceWithDiscountBase);
+                basepricepangv = _priceFormatter.FormatBasePrice(product, finalPriceWithDiscountBase, totalWeight);
             }
 
             //stock
@@ -1013,7 +1034,7 @@ namespace Nop.Web.Controllers
 
                 if (pictureId > 0)
                 {
-                    var productAttributePictureCacheKey = string.Format(ModelCacheEventConsumer.PRODUCTATTRIBUTE_PICTURE_MODEL_KEY,
+                    var productAttributePictureCacheKey = string.Format(NopModelCacheDefaults.ProductAttributePictureModelKey,
                         pictureId, _webHelper.IsCurrentConnectionSecured(), _storeContext.CurrentStore.Id);
                     var pictureModel = _cacheManager.Get(productAttributePictureCacheKey, () =>
                     {
@@ -1366,20 +1387,22 @@ namespace Nop.Web.Controllers
                 return View(model);
             }
 
-            //everything is OK
-            if (_workContext.CurrentCustomer.IsGuest())
+            var anonymousPermissed = _orderSettings.AnonymousCheckoutAllowed 
+                                     && _customerSettings.UserRegistrationType == UserRegistrationType.Disabled;
+
+            if (anonymousPermissed || !_workContext.CurrentCustomer.IsGuest())
+                return RedirectToRoute("Checkout");
+            
+            var downloadableProductsRequireRegistration =
+                _customerSettings.RequireRegistrationForDownloadableProducts && cart.Any(sci => sci.Product.IsDownload);
+
+            if (!_orderSettings.AnonymousCheckoutAllowed || downloadableProductsRequireRegistration)
             {
-                var downloadableProductsRequireRegistration =
-                    _customerSettings.RequireRegistrationForDownloadableProducts && cart.Any(sci => sci.Product.IsDownload);
-
-                if (!_orderSettings.AnonymousCheckoutAllowed
-                    || downloadableProductsRequireRegistration)
-                    return Challenge();
-
-                return RedirectToRoute("LoginCheckoutAsGuest", new { returnUrl = Url.RouteUrl("ShoppingCart") });
+                //verify user identity (it may be facebook login page, or google, or local)
+                return Challenge();
             }
 
-            return RedirectToRoute("Checkout");
+            return RedirectToRoute("LoginCheckoutAsGuest", new { returnUrl = Url.RouteUrl("ShoppingCart") });
         }
 
         [HttpPost, ActionName("Cart")]

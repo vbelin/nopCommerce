@@ -38,7 +38,8 @@ namespace Nop.Plugin.Data.PostgreSQL.Services.Catalog
 
         #region Ctor
 
-        public ProductService(CatalogSettings catalogSettings,
+        public ProductService
+            (CatalogSettings catalogSettings,
             CommonSettings commonSettings,
             IAclService aclService,
             ICacheManager cacheManager,
@@ -64,6 +65,7 @@ namespace Nop.Plugin.Data.PostgreSQL.Services.Catalog
             IRepository<StoreMapping> storeMappingRepository,
             IRepository<TierPrice> tierPriceRepository,
             IStoreMappingService storeMappingService,
+            IStoreService storeService,
             IWorkContext workContext,
             LocalizationSettings localizationSettings)
             : base(catalogSettings,
@@ -88,6 +90,7 @@ namespace Nop.Plugin.Data.PostgreSQL.Services.Catalog
                 stockQuantityHistoryRepository,
                 storeMappingRepository,
                 tierPriceRepository,
+                storeService,
                 storeMappingService,
                 workContext,
                 localizationSettings)

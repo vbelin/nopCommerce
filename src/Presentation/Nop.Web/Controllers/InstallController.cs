@@ -50,7 +50,6 @@ namespace Nop.Web.Controllers
 
         #endregion
 
-        
         #region Methods
 
         public virtual IActionResult Index()
@@ -188,26 +187,25 @@ namespace Nop.Web.Controllers
                     //reset cache
                     DataSettingsManager.ResetCache();
 
-                    //install plugins
-                    PluginManager.MarkAllPluginsAsUninstalled();
-                    var pluginFinder = EngineContext.Current.Resolve<IPluginFinder>();
-                    var plugins = pluginFinder.GetPlugins<IPlugin>(LoadPluginsMode.All)
-                        .ToList()
-                        .OrderBy(x => x.PluginDescriptor.Group)
-                        .ThenBy(x => x.PluginDescriptor.DisplayOrder)
+                    //prepare plugins to install
+                    var pluginService = EngineContext.Current.Resolve<IPluginService>();
+                    pluginService.ClearInstalledPluginsList();
+
+                    var pluginsIgnoredDuringInstallation = new List<string>();
+                    if (!string.IsNullOrEmpty(_config.PluginsIgnoredDuringInstallation))
+                    {
+                        pluginsIgnoredDuringInstallation = _config.PluginsIgnoredDuringInstallation
+                            .Split(',', StringSplitOptions.RemoveEmptyEntries).Select(pluginName => pluginName.Trim()).ToList();
+                    }
+
+                    var plugins = pluginService.GetPluginDescriptors<IPlugin>(LoadPluginsMode.All)
+                        .Where(pluginDescriptor => !pluginsIgnoredDuringInstallation.Contains(pluginDescriptor.SystemName))
+                        .OrderBy(pluginDescriptor => pluginDescriptor.Group).ThenBy(pluginDescriptor => pluginDescriptor.DisplayOrder)
                         .ToList();
-                    var pluginsIgnoredDuringInstallation = string.IsNullOrEmpty(_config.PluginsIgnoredDuringInstallation) ?
-                        new List<string>() :
-                        _config.PluginsIgnoredDuringInstallation
-                        .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                        .Select(x => x.Trim())
-                        .ToList();
+
                     foreach (var plugin in plugins)
                     {
-                        if (pluginsIgnoredDuringInstallation.Contains(plugin.PluginDescriptor.SystemName))
-                            continue;
-
-                        plugin.Install();
+                        pluginService.PreparePluginToInstall(plugin.SystemName);
                     }
 
                     //register default permissions

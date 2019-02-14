@@ -48,6 +48,7 @@ namespace Nop.Web.Areas.Admin.Factories
         #region Fields
 
         private readonly AddressSettings _addressSettings;
+        private readonly CatalogSettings _catalogSettings;
         private readonly CurrencySettings _currencySettings;
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IAddressAttributeFormatter _addressAttributeFormatter;
@@ -91,6 +92,7 @@ namespace Nop.Web.Areas.Admin.Factories
         #region Ctor
 
         public OrderModelFactory(AddressSettings addressSettings,
+            CatalogSettings catalogSettings,
             CurrencySettings currencySettings,
             IActionContextAccessor actionContextAccessor,
             IAddressAttributeFormatter addressAttributeFormatter,
@@ -130,6 +132,7 @@ namespace Nop.Web.Areas.Admin.Factories
             TaxSettings taxSettings)
         {
             this._addressSettings = addressSettings;
+            this._catalogSettings = catalogSettings;
             this._currencySettings = currencySettings;
             this._actionContextAccessor = actionContextAccessor;
             this._addressAttributeFormatter = addressAttributeFormatter;
@@ -859,6 +862,8 @@ namespace Nop.Web.Areas.Admin.Factories
                 .Select(country => new SelectListItem { Text = country.Name, Value = country.Id.ToString() }).ToList();
             searchModel.AvailableCountries.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
+            searchModel.HideStoresList = _catalogSettings.IgnoreStoreLimitations || searchModel.AvailableStores.SelectionIsNotPossible();
+
             //prepare page parameters
             searchModel.SetGridPageSize();
 
@@ -1269,7 +1274,7 @@ namespace Nop.Web.Areas.Admin.Factories
             _baseAdminModelFactory.PrepareCountries(searchModel.AvailableCountries);
 
             //prepare available states and provinces
-            _baseAdminModelFactory.PrepareStatesAndProvinces(searchModel.AvailableCountries, searchModel.CountryId);
+            _baseAdminModelFactory.PrepareStatesAndProvinces(searchModel.AvailableStates, searchModel.CountryId);
 
             //prepare available warehouses
             _baseAdminModelFactory.PrepareWarehouses(searchModel.AvailableWarehouses);

@@ -111,16 +111,16 @@ set @resources='
     <Value>Failed to add vendor note.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.SpecificationAttributes.Alert.FailedAdd">
-    <Value>Failed to add specification attribute.</Value>
+    <Value></Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Currencies.Alert.Error">
     <Value>Failed to update currency.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.SpecificationAttributes.Alert.SelectOption">
-    <Value>Select specification attribute option.</Value>
+    <Value></Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.SpecificationAttributes.Alert.NoAttributeOptions">
-    <Value>First, please create at least one specification attribute option</Value>
+    <Value></Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Promotions.Discounts.Requirements.FailedToSave">
     <Value></Value>
@@ -220,6 +220,69 @@ set @resources='
   </LocaleResource>
   <LocaleResource Name="ShoppingCart.Discount.CannotBeUsed">
     <Value>You cannot use this discount coupon because the validation conditions are not met</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportProductUseLimitedToStores">
+    <Value>Export/Import products with "limited to stores"</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.Catalog.ExportImportProductUseLimitedToStores.Hint">
+    <Value>Check if products should be exported/imported with "limited to stores" property.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Products.Import.StoresDontExist">
+    <Value>Stores with the following names and/or IDs don''t exist: {0}</Value>
+  </LocaleResource>
+  <LocaleResource Name="Plugins.Payments.Square.Fields.Location.Select">
+    <Value>Select location</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.ShoppingCart.GroupTierPricesForDistinctShoppingCartItems">
+    <Value>Group tier prices for distinct shopping cart items</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.ShoppingCart.GroupTierPricesForDistinctShoppingCartItems.Hint">
+    <Value>Allows to offer special prices when customers buy bigger amounts of a particular product. For example, when a customer could have two shopping cart items for the same products (different product attributes).</Value>
+  </LocaleResource>
+  <LocaleResource Name="Checkout.Addresses.Invalid">
+    <Value>You have {0} invalid address(es)</Value>
+  </LocaleResource>  
+  <LocaleResource Name="Admin.Catalog.Products.Fields.LowStockActivity.Hint">
+    <Value>Action to be taken when your current stock quantity falls below (reaches) the ''Minimum stock quantity''. Activation of the action will occur only after an order is placed.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Categories.Display">
+    <Value>Display</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Categories.Mappings">
+    <Value>Mappings</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Manufacturers.Display">
+    <Value>Display</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Manufacturers.Mappings">
+    <Value>Mappings</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Plugins">
+    <Value></Value>
+  </LocaleResource>  
+  <LocaleResource Name="Admin.Configuration.Tax">
+    <Value></Value>
+  </LocaleResource>  
+  <LocaleResource Name="Admin.Vendors.Display">
+    <Value>Display</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Products.Import.DatabaseNotContainCategory">
+    <Value>Database doesn''t contain the ''{0}'' category</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.Comments.List.BlogPostId">
+    <Value></Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.Blog.Comments.List.BlogPostId.Hint">
+    <Value></Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.News.Comments.List.NewsItemId">
+    <Value></Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.ContentManagement.News.Comments.List.NewsItemId.Hint">
+    <Value></Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Catalog.Products.AssociatedProducts.TryToAddSelfGroupedProduct">
+    <Value>You cannot add current group product to related ones. This group product was ignored while adding.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Plugins.ProviderIsUsed">
     <Value>This provider is currently used.</Value>
@@ -962,6 +1025,7 @@ BEGIN
 END
 GO
 
+--new setting
 IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'messagessettings.usepopupnotifications')
 BEGIN
     INSERT [Setting] ([Name], [Value], [StoreId])
@@ -969,6 +1033,7 @@ BEGIN
 END
 GO
 
+--new setting
 IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'customersettings.passwordrequirelowercase')
 BEGIN
     INSERT [Setting] ([Name], [Value], [StoreId])
@@ -976,6 +1041,7 @@ BEGIN
 END
 GO
 
+--new setting
 IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'customersettings.passwordrequireuppercase')
 BEGIN
     INSERT [Setting] ([Name], [Value], [StoreId])
@@ -983,6 +1049,7 @@ BEGIN
 END
 GO
 
+--new setting
 IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'customersettings.passwordrequirenonalphanumeric')
 BEGIN
     INSERT [Setting] ([Name], [Value], [StoreId])
@@ -990,9 +1057,35 @@ BEGIN
 END
 GO
 
+--new setting
 IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'customersettings.passwordrequiredigit')
 BEGIN
     INSERT [Setting] ([Name], [Value], [StoreId])
     VALUES (N'customersettings.passwordrequiredigit', N'False', 0)
 END
+GO
+
+--new setting
+IF NOT EXISTS (SELECT 1 FROM [Setting] WHERE [Name] = N'catalogsettings.exportimportproductuselimitedtostores')
+BEGIN
+    INSERT [Setting] ([Name], [Value], [StoreId])
+    VALUES (N'catalogsettings.exportimportproductuselimitedtostores', N'False', 0)
+END
+GO
+
+--updating of indexes in the Picture table for reduced table size after upgrade nopCommerce from 4.00 to 4.10 version
+ALTER INDEX ALL ON [Picture] REBUILD
+GO
+
+--new activity log type
+IF NOT EXISTS (SELECT 1 FROM [ActivityLogType] WHERE [Name] = N'Upload a favicon and app icons archive')
+BEGIN
+	INSERT [dbo].[ActivityLogType] ( [SystemKeyword], [Name], [Enabled]) VALUES ( N'UploadIconsArchive', N'Upload a favicon and app icons archive', 1)
+END
+GO
+
+--new ground shipping description
+UPDATE [ShippingMethod] 
+SET [Description] = 'Shipping by land transport'
+WHERE [Name] = 'Ground'
 GO
