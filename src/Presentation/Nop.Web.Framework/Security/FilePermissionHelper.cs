@@ -284,7 +284,7 @@ namespace Nop.Web.Framework.Security
             {
                 fileProvider.Combine(rootDir, "App_Data"),
                 fileProvider.Combine(rootDir, "bin"),
-                fileProvider.Combine(rootDir, "log"),
+                fileProvider.Combine(rootDir, "logs"),
                 fileProvider.Combine(rootDir, "Plugins"),
                 fileProvider.Combine(rootDir, "Plugins\\bin"),
                 fileProvider.Combine(rootDir, "wwwroot\\bundles"),
@@ -308,7 +308,7 @@ namespace Nop.Web.Framework.Security
 
             return new List<string>
             {
-                fileProvider.MapPath(NopPluginDefaults.InstalledPluginsFilePath),
+                fileProvider.MapPath(NopPluginDefaults.PluginsInfoFilePath),
                 fileProvider.MapPath(NopDataSettingsDefaults.FilePath)
             };
         }
