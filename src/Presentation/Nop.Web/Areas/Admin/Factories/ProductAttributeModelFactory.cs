@@ -192,14 +192,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 Data = values.PaginationByRequestModel(searchModel).Select(value =>
                 {
                     //fill in model values from the entity
-                    var predefinedProductAttributeValueModel = new PredefinedProductAttributeValueModel
-                    {
-                        Id = value.Id,
-                        ProductAttributeId = value.ProductAttributeId,
-                        Name = value.Name,
-                        IsPreSelected = value.IsPreSelected,
-                        DisplayOrder = value.DisplayOrder
-                    };
+                    var predefinedProductAttributeValueModel = value.ToModel<PredefinedProductAttributeValueModel>();
 
                     //fill in additional values (not existing in the entity)
                     predefinedProductAttributeValueModel.WeightAdjustmentStr = value.WeightAdjustment.ToString("G29");
@@ -233,17 +226,10 @@ namespace Nop.Web.Areas.Admin.Factories
             if (productAttributeValue != null)
             {
                 //fill in model values from the entity
-                model = model ?? new PredefinedProductAttributeValueModel
+                if (model == null) 
                 {
-                    ProductAttributeId = productAttributeValue.ProductAttributeId,
-                    Name = productAttributeValue.Name,
-                    PriceAdjustment = productAttributeValue.PriceAdjustment,
-                    PriceAdjustmentUsePercentage = productAttributeValue.PriceAdjustmentUsePercentage,
-                    WeightAdjustment = productAttributeValue.WeightAdjustment,
-                    Cost = productAttributeValue.Cost,
-                    IsPreSelected = productAttributeValue.IsPreSelected,
-                    DisplayOrder = productAttributeValue.DisplayOrder
-                };
+                    model = productAttributeValue.ToModel<PredefinedProductAttributeValueModel>();
+                }
 
                 //define localized model configuration action
                 localizedModelConfiguration = (locale, languageId) =>
@@ -284,11 +270,11 @@ namespace Nop.Web.Areas.Admin.Factories
             var model = new ProductAttributeProductListModel
             {
                 //fill in model values from the entity
-                Data = products.Select(product => new ProductAttributeProductModel
+                Data = products.Select(product =>
                 {
-                    Id = product.Id,
-                    ProductName = product.Name,
-                    Published = product.Published
+                    var productAttributeProductModel = product.ToModel<ProductAttributeProductModel>();
+                    productAttributeProductModel.ProductName = product.Name;
+                    return productAttributeProductModel;
                 }),
                 Total = products.TotalCount
             };

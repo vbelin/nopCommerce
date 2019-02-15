@@ -139,6 +139,57 @@ ul.common-list {
     overflow-x: scroll;
 }
 
+/*COLLAPSIBLE BLOCKS*/
+.panel.collapsible-panel {
+    margin-bottom: 10px;
+    border-color: #3c8dbc;
+}
+
+.panel.collapsible-panel .sub-panel {
+    margin-bottom: 15px;
+}
+
+.panel.collapsible-panel .panel-heading {
+    padding-right: 30px;
+    position: relative;
+    cursor: pointer;
+}
+
+.panel.collapsible-panel >.panel-heading {
+    background-color: #3c8dbc;
+    color: #fff;
+    border-color: #3c8dbc;
+    padding-left: 45px;
+}
+
+.panel.collapsible-panel >.panel-heading span {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.panel.collapsible-panel .panel-heading i.toggle-icon {
+    position: absolute;
+    right: 5px;
+    top: 14px;
+}
+
+.panel.collapsible-panel .panel-heading div.icon-container {
+    width: 45px;
+    position: absolute;
+    left: 0;
+    top: 12px;
+    text-align: center;
+}
+
+.panel.collapsible-panel .panel-heading i.panel-icon {
+    font-size: 18px;
+    padding-right: 0 !important;
+}
+
+.panel.collapsible-panel .panel-container.collapsed {
+    display: none;
+}
+
 /*DISCOUNT*/
 .requirement-container {
     margin-bottom: 5px;
@@ -1260,8 +1311,8 @@ span.grid-report-item.red {
 }
 
 .onoffswitch {
-    position: relative; 
-    width: 130px;
+    position: relative;
+    display: inline-block;
     -webkit-user-select:none; 
     -moz-user-select:none; 
     -ms-user-select: none;
@@ -1274,13 +1325,12 @@ span.grid-report-item.red {
     overflow: hidden; 
     cursor: pointer;
     border: 1px solid #367fa9;
+    margin: 0;
     border-radius: 3px;
 }
 .onoffswitch-inner {
     display: block; 
     width: 200%; 
-    margin-right: -100%;
-    transition: margin 0.3s ease-in 0s;
 }
 .onoffswitch-inner:before, .onoffswitch-inner:after {
     display: block;
@@ -1296,35 +1346,38 @@ span.grid-report-item.red {
 }
 .onoffswitch-inner:before {
     content: attr(data-locale-advanced);
-    padding-right: 10px;
+    padding: 0 10px 0 30px;
     background-color: #3c8dbc;
     color: #FFFFFF;
 }
 .onoffswitch-inner:after {
     content: attr(data-locale-basic);
-    padding-left: 10px;
+    padding: 0 30px 0 10px;
     background-color: #efefef;
     color: #3380ad;
     text-align: left;
 }
 .onoffswitch-switch {
-    display: block; 
+    display: block;
     width: 16px;
     margin: 6.5px;
     background: #FFFFFF;
-    position: absolute; 
-    top: 0; 
+    position: absolute;
+    top: 0;
     bottom: 0;
-    left: 95px;
+    left: calc(100% - 29px /* width + margin * 2 */ );
     border: 1px solid #367fa9;
     border-radius: 15px;
     transition: all 0.3s ease-in 0s;
 }
-.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
-    margin-right: 0;
-}
 .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
     left: 0px; 
+}
+.onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner:after {
+    display: none;
+}
+.onoffswitch-checkbox:not(:checked) + .onoffswitch-label .onoffswitch-inner:before {
+    display: none;
 }
 
 /*bootstrap touchspin*/
@@ -1339,6 +1392,9 @@ span.grid-report-item.red {
 }
 .bootstrap-touchspin-postfix {
     border-right: none;
+}
+.input-group-btn-vertical {
+    top: 0;
 }
 .bootstrap-touchspin .input-group-btn-vertical i {
     right: 6px;

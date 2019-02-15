@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -31,12 +31,12 @@ namespace Nop.Web.Framework.Security
 
             switch (Environment.OSVersion.Platform)
             {
-                    case PlatformID.Win32NT:
-                        result = CheckPermissionsInWindows(path, checkRead, checkWrite, checkModify, checkDelete);
-                        break;
-                    case PlatformID.Unix:
-                        result = CheckPermissionsInUnix(path, checkRead, checkWrite, checkModify, checkDelete);
-                        break;
+                case PlatformID.Win32NT:
+                    result = CheckPermissionsInWindows(path, checkRead, checkWrite, checkModify, checkDelete);
+                    break;
+                case PlatformID.Unix:
+                    result = CheckPermissionsInUnix(path, checkRead, checkWrite, checkModify, checkDelete);
+                    break;
             }
 
             return result;
@@ -116,7 +116,7 @@ namespace Nop.Web.Framework.Security
                 var writeIsAllow = false;
                 var modifyIsAllow = false;
                 var deleteIsAllow = false;
-                
+
                 var rules = fileProvider.GetAccessControl(path).GetAccessRules(true, true, typeof(SecurityIdentifier))
                     .Cast<FileSystemAccessRule>()
                     .ToList();
@@ -192,9 +192,9 @@ namespace Nop.Web.Framework.Security
 
                 var arg = "-c \" stat -c '%a %u %g' " + path + "  \"";
 
-                var process = new Process 
+                var process = new Process
                 {
-                    StartInfo = new ProcessStartInfo 
+                    StartInfo = new ProcessStartInfo
                     {
                         RedirectStandardInput = true,
                         RedirectStandardOutput = true,
@@ -209,7 +209,7 @@ namespace Nop.Web.Framework.Security
 
                 var respars = res.Trim('\n').Split(' ');
 
-                var linuxFilePermissions = new[] 
+                var linuxFilePermissions = new[]
                 {
                     (int)char.GetNumericValue(respars[0][0]),
                     (int)char.GetNumericValue(respars[0][1]),

@@ -160,7 +160,7 @@ namespace Nop.Web.Factories
 
             if (_catalogSettings.ShowProductReviewsPerStore)
             {
-                var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_REVIEWS_MODEL_KEY, product.Id, _storeContext.CurrentStore.Id);
+                var cacheKey = string.Format(NopModelCacheDefaults.ProductReviewsModelKey, product.Id, _storeContext.CurrentStore.Id);
 
                 productReview = _cacheManager.Get(cacheKey, () =>
                 {
@@ -340,7 +340,7 @@ namespace Nop.Web.Factories
                     //we also ensure this it's not free shipping
                     priceModel.DisplayTaxShippingInfo = _catalogSettings.DisplayTaxShippingInfoProductBoxes && product.IsShipEnabled && !product.IsFreeShipping;
 
-                    //PAngV baseprice (used in Germany)
+                    //PAngV default baseprice (used in Germany)
                     priceModel.BasePricePAngV = _priceFormatter.FormatBasePrice(product, finalPriceWithDiscount);
                 }
             }
@@ -373,10 +373,6 @@ namespace Nop.Web.Factories
                 return;
 
             //we have at least one associated product
-            //compare products
-            priceModel.DisableAddToCompareListButton = !_catalogSettings.CompareProductsEnabled;
-            //priceModel.AvailableForPreOrder = false;
-
             if (_permissionService.Authorize(StandardPermissionProvider.DisplayPrices))
             {
                 //find a minimum possible price
@@ -420,7 +416,7 @@ namespace Nop.Web.Factories
                     priceModel.Price = string.Format(_localizationService.GetResource("Products.PriceRangeFrom"),_priceFormatter.FormatPrice(finalPrice));
                     priceModel.PriceValue = finalPrice;
 
-                    //PAngV baseprice (used in Germany)
+                    //PAngV default baseprice (used in Germany)
                     priceModel.BasePricePAngV = _priceFormatter.FormatBasePrice(product, finalPriceBase);
                 }
             }
@@ -448,7 +444,7 @@ namespace Nop.Web.Factories
             var pictureSize = productThumbPictureSize ?? _mediaSettings.ProductThumbPictureSize;
 
             //prepare picture model
-            var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_DEFAULTPICTURE_MODEL_KEY,
+            var cacheKey = string.Format(NopModelCacheDefaults.ProductDefaultPictureModelKey,
                 product.Id, pictureSize, true, _workContext.WorkingLanguage.Id, _webHelper.IsCurrentConnectionSecured(),
                 _storeContext.CurrentStore.Id);
 
@@ -487,7 +483,7 @@ namespace Nop.Web.Factories
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_BREADCRUMB_MODEL_KEY,
+            var cacheKey = string.Format(NopModelCacheDefaults.ProductBreadcrumbModelKey,
                     product.Id,
                     _workContext.WorkingLanguage.Id,
                     string.Join(",", _workContext.CurrentCustomer.GetCustomerRoleIds()),
@@ -535,7 +531,7 @@ namespace Nop.Web.Factories
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var productTagsCacheKey = string.Format(ModelCacheEventConsumer.PRODUCTTAG_BY_PRODUCT_MODEL_KEY, product.Id, _workContext.WorkingLanguage.Id, _storeContext.CurrentStore.Id);
+            var productTagsCacheKey = string.Format(NopModelCacheDefaults.ProductTagByProductModelKey, product.Id, _workContext.WorkingLanguage.Id, _storeContext.CurrentStore.Id);
             var model = _cacheManager.Get(productTagsCacheKey, () =>
                 _productTagService.GetAllProductTagsByProductId(product.Id)
                 //filter by store
@@ -729,7 +725,7 @@ namespace Nop.Web.Factories
             //performance optimization
             //We cache a value indicating whether a product has attributes
             IList<ProductAttributeMapping> productAttributeMapping = null;
-            var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_HAS_PRODUCT_ATTRIBUTES_KEY, product.Id);
+            var cacheKey = string.Format(NopModelCacheDefaults.ProductHasProductAttributesKey, product.Id);
             var hasProductAttributesCache = _cacheManager.Get(cacheKey, () =>
             {
                 //no value in the cache yet
@@ -762,7 +758,7 @@ namespace Nop.Web.Factories
                     TextPrompt = _localizationService.GetLocalized(attribute, x => x.TextPrompt),
                     IsRequired = attribute.IsRequired,
                     AttributeControlType = attribute.AttributeControlType,
-                    DefaultValue = updatecartitem != null ? null : attribute.DefaultValue,
+                    DefaultValue = updatecartitem != null ? null : _localizationService.GetLocalized(attribute, x => x.DefaultValue),
                     HasCondition = !string.IsNullOrEmpty(attribute.ConditionAttributeXml)
                 };
                 if (!string.IsNullOrEmpty(attribute.ValidationFileAllowedExtensions))
@@ -817,7 +813,7 @@ namespace Nop.Web.Factories
                         //"image square" picture (with with "image squares" attribute type only)
                         if (attributeValue.ImageSquaresPictureId > 0)
                         {
-                            var productAttributeImageSquarePictureCacheKey = string.Format(ModelCacheEventConsumer.PRODUCTATTRIBUTE_IMAGESQUARE_PICTURE_MODEL_KEY,
+                            var productAttributeImageSquarePictureCacheKey = string.Format(NopModelCacheDefaults.ProductAttributeImageSquarePictureModelKey,
                                    attributeValue.ImageSquaresPictureId,
                                    _webHelper.IsCurrentConnectionSecured(),
                                    _storeContext.CurrentStore.Id);
@@ -982,7 +978,7 @@ namespace Nop.Web.Factories
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var manufacturersCacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_MANUFACTURERS_MODEL_KEY,
+            var manufacturersCacheKey = string.Format(NopModelCacheDefaults.ProductManufacturersModelKey,
                      product.Id,
                      _workContext.WorkingLanguage.Id,
                      string.Join(",", _workContext.CurrentCustomer.GetCustomerRoleIds()),
@@ -1024,7 +1020,7 @@ namespace Nop.Web.Factories
                 _mediaSettings.ProductDetailsPictureSize;
 
             //prepare picture models
-            var productPicturesCacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_DETAILS_PICTURES_MODEL_KEY, product.Id, defaultPictureSize, isAssociatedProduct, _workContext.WorkingLanguage.Id, _webHelper.IsCurrentConnectionSecured(), _storeContext.CurrentStore.Id);
+            var productPicturesCacheKey = string.Format(NopModelCacheDefaults.ProductDetailsPicturesModelKey, product.Id, defaultPictureSize, isAssociatedProduct, _workContext.WorkingLanguage.Id, _webHelper.IsCurrentConnectionSecured(), _storeContext.CurrentStore.Id);
             var cachedPictures = _cacheManager.Get(productPicturesCacheKey, () =>
             {
                 var productName = _localizationService.GetLocalized(product, x => x.Name);
@@ -1090,7 +1086,7 @@ namespace Nop.Web.Factories
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var templateCacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_TEMPLATE_MODEL_KEY, product.ProductTemplateId);
+            var templateCacheKey = string.Format(NopModelCacheDefaults.ProductTemplateModelKey, product.ProductTemplateId);
             var productTemplateViewPath = _cacheManager.Get(templateCacheKey, () =>
             {
                 var template = _productTemplateService.GetProductTemplateById(product.ProductTemplateId);
@@ -1605,7 +1601,7 @@ namespace Nop.Web.Factories
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
-            var cacheKey = string.Format(ModelCacheEventConsumer.PRODUCT_SPECS_MODEL_KEY, product.Id, _workContext.WorkingLanguage.Id);
+            var cacheKey = string.Format(NopModelCacheDefaults.ProductSpecsModelKey, product.Id, _workContext.WorkingLanguage.Id);
             return _cacheManager.Get(cacheKey, () =>
                 _specificationAttributeService.GetProductSpecificationAttributes(product.Id, 0, null, true)
                 .Select(psa =>

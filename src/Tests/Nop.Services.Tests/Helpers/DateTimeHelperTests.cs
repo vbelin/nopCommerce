@@ -46,12 +46,12 @@ namespace Nop.Services.Tests.Helpers
                 DefaultStoreTimeZoneId = ""
             };
 
-            _dateTimeHelper = new DateTimeHelper(_dateTimeSettings, _genericAttributeService.Object, 
+            _dateTimeHelper = new DateTimeHelper(_dateTimeSettings, _genericAttributeService.Object,
                 _settingService.Object, _workContext.Object);
 
             gmtPlus2TimeZoneId = "E. Europe Standard Time";  //(GMT+02:00) Minsk
             gmtPlus3TimeZoneId = "Russian Standard Time"; //(GMT+03:00) Moscow, St. Petersburg, Volgograd
-            gmtPlus7TimeZoneId  = "North Asia Standard Time"; //(GMT+07:00) Krasnoyarsk;
+            gmtPlus7TimeZoneId = "North Asia Standard Time"; //(GMT+07:00) Krasnoyarsk;
 
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {

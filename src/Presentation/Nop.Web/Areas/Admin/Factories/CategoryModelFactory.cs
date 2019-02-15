@@ -9,6 +9,7 @@ using Nop.Services.Localization;
 using Nop.Services.Seo;
 using Nop.Web.Areas.Admin.Infrastructure.Mapper.Extensions;
 using Nop.Web.Areas.Admin.Models.Catalog;
+using Nop.Web.Framework.Extensions;
 using Nop.Web.Framework.Factories;
 
 namespace Nop.Web.Areas.Admin.Factories
@@ -104,6 +105,8 @@ namespace Nop.Web.Areas.Admin.Factories
             //prepare available stores
             _baseAdminModelFactory.PrepareStores(searchModel.AvailableStores);
 
+            searchModel.HideStoresList = _catalogSettings.IgnoreStoreLimitations || searchModel.AvailableStores.SelectionIsNotPossible();
+
             //prepare page parameters
             searchModel.SetGridPageSize();
 
@@ -136,6 +139,7 @@ namespace Nop.Web.Areas.Admin.Factories
 
                     //fill in additional values (not existing in the entity)
                     categoryModel.Breadcrumb = _categoryService.GetFormattedBreadCrumb(category);
+                    categoryModel.SeName = _urlRecordService.GetSeName(category, 0, true, false);
 
                     return categoryModel;
                 }),
@@ -159,7 +163,11 @@ namespace Nop.Web.Areas.Admin.Factories
             if (category != null)
             {
                 //fill in model values from the entity
-                model = model ?? category.ToModel<CategoryModel>();
+                if (model == null)
+                {
+                    model = category.ToModel<CategoryModel>();
+                    model.SeName = _urlRecordService.GetSeName(category, 0, true, false);
+                }
 
                 //prepare nested search model
                 PrepareCategoryProductSearchModel(model.CategoryProductSearchModel, category);
@@ -232,15 +240,15 @@ namespace Nop.Web.Areas.Admin.Factories
             //prepare grid model
             var model = new CategoryProductListModel
             {
-                //fill in model values from the entity
-                Data = productCategories.Select(productCategory => new CategoryProductModel
+                Data = productCategories.Select(productCategory => 
                 {
-                    Id = productCategory.Id,
-                    CategoryId = productCategory.CategoryId,
-                    ProductId = productCategory.ProductId,
-                    ProductName = _productService.GetProductById(productCategory.ProductId)?.Name,
-                    IsFeaturedProduct = productCategory.IsFeaturedProduct,
-                    DisplayOrder = productCategory.DisplayOrder
+                    //fill in model values from the entity
+                    var categoryProductModel = productCategory.ToModel<CategoryProductModel>();
+
+                    //fill in additional values (not existing in the entity)
+                    categoryProductModel.ProductName = _productService.GetProductById(productCategory.ProductId)?.Name;
+
+                    return categoryProductModel;                    
                 }),
                 Total = productCategories.TotalCount
             };
@@ -303,7 +311,13 @@ namespace Nop.Web.Areas.Admin.Factories
             var model = new AddProductToCategoryListModel
             {
                 //fill in model values from the entity
-                Data = products.Select(product => product.ToModel<ProductModel>()),
+                Data = products.Select(product =>
+                {
+                    var productModel = product.ToModel<ProductModel>();
+                    productModel.SeName = _urlRecordService.GetSeName(product, 0, true, false);
+
+                    return productModel;
+                }),
                 Total = products.TotalCount
             };
 

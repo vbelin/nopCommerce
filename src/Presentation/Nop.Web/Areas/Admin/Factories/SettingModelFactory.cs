@@ -1001,6 +1001,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 model.ExportImportSplitProductsFile_OverrideForStore = _settingService.SettingExists(catalogSettings, x => x.ExportImportSplitProductsFile, storeId);
                 model.RemoveRequiredProducts_OverrideForStore = _settingService.SettingExists(catalogSettings, x => x.RemoveRequiredProducts, storeId);
                 model.ExportImportRelatedEntitiesByName_OverrideForStore = _settingService.SettingExists(catalogSettings, x => x.ExportImportRelatedEntitiesByName, storeId);
+                model.ExportImportProductUseLimitedToStores_OverrideForStore = _settingService.SettingExists(catalogSettings, x => x.ExportImportProductUseLimitedToStores, storeId);
                 model.DisplayDatePreOrderAvailability_OverrideForStore = _settingService.SettingExists(catalogSettings, x => x.DisplayDatePreOrderAvailability, storeId);
             }
 
@@ -1183,6 +1184,7 @@ namespace Nop.Web.Areas.Admin.Factories
             model.ShowProductImagesInMiniShoppingCart_OverrideForStore = _settingService.SettingExists(shoppingCartSettings, x => x.ShowProductImagesInMiniShoppingCart, storeId);
             model.MiniShoppingCartProductNumber_OverrideForStore = _settingService.SettingExists(shoppingCartSettings, x => x.MiniShoppingCartProductNumber, storeId);
             model.AllowCartItemEditing_OverrideForStore = _settingService.SettingExists(shoppingCartSettings, x => x.AllowCartItemEditing, storeId);
+            model.GroupTierPricesForDistinctShoppingCartItems_OverrideForStore = _settingService.SettingExists(shoppingCartSettings, x => x.GroupTierPricesForDistinctShoppingCartItems, storeId);
 
             return model;
         }
@@ -1273,6 +1275,9 @@ namespace Nop.Web.Areas.Admin.Factories
             //fill in additional values (not existing in the entity)
             model.ActiveStoreScopeConfiguration = storeId;
 
+            //prepare nested search model
+            PrepareGdprConsentSearchModel(model.GdprConsentSearchModel);
+
             if (storeId <= 0)
                 return model;
 
@@ -1280,9 +1285,6 @@ namespace Nop.Web.Areas.Admin.Factories
             model.GdprEnabled_OverrideForStore = _settingService.SettingExists(gdprSettings, x => x.GdprEnabled, storeId);
             model.LogPrivacyPolicyConsent_OverrideForStore = _settingService.SettingExists(gdprSettings, x => x.LogPrivacyPolicyConsent, storeId);
             model.LogNewsletterConsent_OverrideForStore = _settingService.SettingExists(gdprSettings, x => x.LogNewsletterConsent, storeId);
-
-            //prepare nested search model
-            PrepareGdprConsentSearchModel(model.GdprConsentSearchModel);
 
             return model;
         }
@@ -1455,13 +1457,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 Data = settings.PaginationByRequestModel(searchModel).Select(setting =>
                 {
                     //fill in model values from the entity
-                    var settingModel = new SettingModel
-                    {
-                        Id = setting.Id,
-                        Name = setting.Name,
-                        Value = setting.Value,
-                        StoreId = setting.StoreId
-                    };
+                    var settingModel = setting.ToModel<SettingModel>();
 
                     //fill in additional values (not existing in the entity)
                     settingModel.Store = setting.StoreId > 0

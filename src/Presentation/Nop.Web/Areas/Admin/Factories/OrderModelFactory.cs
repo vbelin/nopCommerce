@@ -26,6 +26,7 @@ using Nop.Services.Media;
 using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Security;
+using Nop.Services.Seo;
 using Nop.Services.Shipping;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
@@ -47,6 +48,7 @@ namespace Nop.Web.Areas.Admin.Factories
         #region Fields
 
         private readonly AddressSettings _addressSettings;
+        private readonly CatalogSettings _catalogSettings;
         private readonly CurrencySettings _currencySettings;
         private readonly IActionContextAccessor _actionContextAccessor;
         private readonly IAddressAttributeFormatter _addressAttributeFormatter;
@@ -82,6 +84,7 @@ namespace Nop.Web.Areas.Admin.Factories
         private readonly MeasureSettings _measureSettings;
         private readonly OrderSettings _orderSettings;
         private readonly ShippingSettings _shippingSettings;
+        private readonly IUrlRecordService _urlRecordService;
         private readonly TaxSettings _taxSettings;
 
         #endregion
@@ -89,6 +92,7 @@ namespace Nop.Web.Areas.Admin.Factories
         #region Ctor
 
         public OrderModelFactory(AddressSettings addressSettings,
+            CatalogSettings catalogSettings,
             CurrencySettings currencySettings,
             IActionContextAccessor actionContextAccessor,
             IAddressAttributeFormatter addressAttributeFormatter,
@@ -124,9 +128,11 @@ namespace Nop.Web.Areas.Admin.Factories
             MeasureSettings measureSettings,
             OrderSettings orderSettings,
             ShippingSettings shippingSettings,
+            IUrlRecordService urlRecordService,
             TaxSettings taxSettings)
         {
             this._addressSettings = addressSettings;
+            this._catalogSettings = catalogSettings;
             this._currencySettings = currencySettings;
             this._actionContextAccessor = actionContextAccessor;
             this._addressAttributeFormatter = addressAttributeFormatter;
@@ -162,6 +168,7 @@ namespace Nop.Web.Areas.Admin.Factories
             this._measureSettings = measureSettings;
             this._orderSettings = orderSettings;
             this._shippingSettings = shippingSettings;
+            this._urlRecordService = urlRecordService;
             this._taxSettings = taxSettings;
         }
 
@@ -855,6 +862,8 @@ namespace Nop.Web.Areas.Admin.Factories
                 .Select(country => new SelectListItem { Text = country.Name, Value = country.Id.ToString() }).ToList();
             searchModel.AvailableCountries.Insert(0, new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
 
+            searchModel.HideStoresList = _catalogSettings.IgnoreStoreLimitations || searchModel.AvailableStores.SelectionIsNotPossible();
+
             //prepare page parameters
             searchModel.SetGridPageSize();
 
@@ -1155,7 +1164,13 @@ namespace Nop.Web.Areas.Admin.Factories
             var model = new AddProductToOrderListModel
             {
                 //fill in model values from the entity
-                Data = products.Select(product => product.ToModel<ProductModel>()),
+                Data = products.Select(product =>
+                {
+                    var productModel = product.ToModel<ProductModel>();
+                    productModel.SeName = _urlRecordService.GetSeName(product, 0, true, false);
+
+                    return productModel;
+                }),
                 Total = products.TotalCount
             };
 
@@ -1259,7 +1274,7 @@ namespace Nop.Web.Areas.Admin.Factories
             _baseAdminModelFactory.PrepareCountries(searchModel.AvailableCountries);
 
             //prepare available states and provinces
-            _baseAdminModelFactory.PrepareStatesAndProvinces(searchModel.AvailableCountries, searchModel.CountryId);
+            _baseAdminModelFactory.PrepareStatesAndProvinces(searchModel.AvailableStates, searchModel.CountryId);
 
             //prepare available warehouses
             _baseAdminModelFactory.PrepareWarehouses(searchModel.AvailableWarehouses);
@@ -1311,12 +1326,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 Data = shipments.Select(shipment =>
                 {
                     //fill in model values from the entity
-                    var shipmentModel = new ShipmentModel
-                    {
-                        Id = shipment.Id,
-                        TrackingNumber = shipment.TrackingNumber,
-                        CustomOrderNumber = shipment.Order.CustomOrderNumber
-                    };
+                    var shipmentModel = shipment.ToModel<ShipmentModel>();                     
 
                     //convert dates to the user time
                     shipmentModel.ShippedDate = shipment.ShippedDateUtc.HasValue
@@ -1327,6 +1337,10 @@ namespace Nop.Web.Areas.Admin.Factories
                         : _localizationService.GetResource("Admin.Orders.Shipments.DeliveryDate.NotYet");
 
                     //fill in additional values (not existing in the entity)
+                    shipmentModel.CanShip = !shipment.ShippedDateUtc.HasValue;
+                    shipmentModel.CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue;
+                    shipmentModel.CustomOrderNumber = shipment.Order.CustomOrderNumber;
+
                     if (shipment.TotalWeight.HasValue)
                         shipmentModel.TotalWeight = $"{shipment.TotalWeight:F2} [{_measureService.GetMeasureWeightById(_measureSettings.BaseWeightId)?.Name}]";
 
@@ -1352,17 +1366,11 @@ namespace Nop.Web.Areas.Admin.Factories
             if (shipment != null)
             {
                 //fill in model values from the entity
-                model = model ?? new ShipmentModel
-                {
-                    Id = shipment.Id,
-                    OrderId = shipment.OrderId,
-                    TrackingNumber = shipment.TrackingNumber,
-                    ShippedDateUtc = shipment.ShippedDateUtc,
-                    CanShip = !shipment.ShippedDateUtc.HasValue,
-                    DeliveryDateUtc = shipment.DeliveryDateUtc,
-                    AdminComment = shipment.AdminComment,
-                    CustomOrderNumber = shipment.Order.CustomOrderNumber
-                };
+                model = model ?? shipment.ToModel<ShipmentModel>();
+
+                model.CanShip = !shipment.ShippedDateUtc.HasValue;
+                model.CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue;
+                model.CustomOrderNumber = shipment.Order.CustomOrderNumber;
 
                 model.ShippedDate = shipment.ShippedDateUtc.HasValue
                     ? _dateTimeHelper.ConvertToUserTime(shipment.ShippedDateUtc.Value, DateTimeKind.Utc).ToString()
@@ -1371,7 +1379,6 @@ namespace Nop.Web.Areas.Admin.Factories
                     ? _dateTimeHelper.ConvertToUserTime(shipment.DeliveryDateUtc.Value, DateTimeKind.Utc).ToString()
                     : _localizationService.GetResource("Admin.Orders.Shipments.DeliveryDate.NotYet");
 
-                model.CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue;
                 if (shipment.TotalWeight.HasValue)
                     model.TotalWeight =
                         $"{shipment.TotalWeight:F2} [{_measureService.GetMeasureWeightById(_measureSettings.BaseWeightId)?.Name}]";
@@ -1504,17 +1511,7 @@ namespace Nop.Web.Areas.Admin.Factories
                 Data = shipments.PaginationByRequestModel(searchModel).Select(shipment =>
                 {
                     //fill in model values from the entity
-                    var shipmentModel = new ShipmentModel
-                    {
-                        Id = shipment.Id,
-                        OrderId = shipment.OrderId,
-                        TrackingNumber = shipment.TrackingNumber,
-                        ShippedDateUtc = shipment.ShippedDateUtc,
-                        CanShip = !shipment.ShippedDateUtc.HasValue,
-                        DeliveryDateUtc = shipment.DeliveryDateUtc,
-                        AdminComment = shipment.AdminComment,
-                        CustomOrderNumber = shipment.Order.CustomOrderNumber
-                    };
+                    var shipmentModel = shipment.ToModel<ShipmentModel>();
 
                     //convert dates to the user time
                     shipmentModel.ShippedDate = shipment.ShippedDateUtc.HasValue
@@ -1525,7 +1522,10 @@ namespace Nop.Web.Areas.Admin.Factories
                         : _localizationService.GetResource("Admin.Orders.Shipments.DeliveryDate.NotYet");
 
                     //fill in additional values (not existing in the entity)
+                    shipmentModel.CanShip = !shipment.ShippedDateUtc.HasValue;
                     shipmentModel.CanDeliver = shipment.ShippedDateUtc.HasValue && !shipment.DeliveryDateUtc.HasValue;
+                    shipmentModel.CustomOrderNumber = shipment.Order.CustomOrderNumber;
+
                     var baseWeight = _measureService.GetMeasureWeightById(_measureSettings.BaseWeightId)?.Name;
                     if (shipment.TotalWeight.HasValue)
                         shipmentModel.TotalWeight = $"{shipment.TotalWeight:F2} [{baseWeight}]";
@@ -1618,19 +1618,13 @@ namespace Nop.Web.Areas.Admin.Factories
                 Data = orderNotes.PaginationByRequestModel(searchModel).Select(orderNote =>
                 {
                     //fill in model values from the entity
-                    var orderNoteModel = new OrderNoteModel
-                    {
-                        Id = orderNote.Id,
-                        OrderId = orderNote.OrderId,
-                        DownloadId = orderNote.DownloadId,
-                        DisplayToCustomer = orderNote.DisplayToCustomer,
-                        Note = _orderService.FormatOrderNoteText(orderNote)
-                    };
+                    var orderNoteModel = orderNote.ToModel<OrderNoteModel>(); 
 
                     //convert dates to the user time
                     orderNoteModel.CreatedOn = _dateTimeHelper.ConvertToUserTime(orderNote.CreatedOnUtc, DateTimeKind.Utc);
 
                     //fill in additional values (not existing in the entity)
+                    orderNoteModel.Note = _orderService.FormatOrderNoteText(orderNote);
                     orderNoteModel.DownloadGuid = _downloadService.GetDownloadById(orderNote.DownloadId)?.DownloadGuid ?? Guid.Empty;
 
                     return orderNoteModel;
