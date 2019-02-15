@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Nop.Core.ComponentModel;
 using Nop.Core.Configuration;
+using Nop.Core.Data;
 using Nop.Core.Plugins;
 
 namespace Nop.Core.Infrastructure.Extensions
@@ -491,6 +492,11 @@ namespace Nop.Core.Infrastructure.Extensions
 
                             //finally, exclude from deploying the plugin that is going to be deleted
                             needToDeploy = needToDeploy && !PluginsInfo.PluginNamesToDelete.Contains(pluginName);
+
+                            if (!DataSettingsManager.DatabaseIsInstalled & pluginDescriptor.Group == "Data")
+                            {
+                                needToDeploy = true;
+                            }
 
                             //whether plugin need to be deployed
                             if (needToDeploy)
