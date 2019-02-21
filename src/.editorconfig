@@ -33,8 +33,8 @@ indent_size = 2
 
 # min files don't reformatting
 [*.min.*]
-trim_trailing_whitespace = false
-insert_final_newline = false
+trim_trailing_whitespace    = false
+insert_final_newline        = false
 
 ###############################
 # .NET Coding Conventions     #
@@ -43,13 +43,13 @@ insert_final_newline = false
 [*.{cs,vb}]
 # Organize usings
 dotnet_sort_system_directives_first         = true
-#dotnet_separate_import_directive_groups     = false
+#dotnet_separate_import_directive_groups    = false
 
 # this. preferences
-dotnet_style_qualification_for_field        = false:none
-dotnet_style_qualification_for_property     = false:none
-dotnet_style_qualification_for_method       = false:none
-dotnet_style_qualification_for_event        = false:none
+dotnet_style_qualification_for_field        = false:suggestion
+dotnet_style_qualification_for_property     = false:suggestion
+dotnet_style_qualification_for_method       = false:suggestion
+dotnet_style_qualification_for_event        = false:suggestion
 
 # Language keywords vs BCL types preferences
 dotnet_style_predefined_type_for_locals_parameters_members  = true:suggestion
@@ -83,50 +83,94 @@ dotnet_style_prefer_conditional_expression_over_return              = true:silen
 ###############################
 
 # Style Definitions
+dotnet_naming_style.pascal_case_style.capitalization               = pascal_case
 
-# const fields should be UPPERCASE
-dotnet_naming_rule.upper_case_for_constant.severity = suggestion
-dotnet_naming_rule.upper_case_for_constant.symbols  = constant_fields
-dotnet_naming_rule.upper_case_for_constant.style    = upper_case_underscore_style
+dotnet_naming_style.camel_case_style.capitalization                = camel_case
 
-dotnet_naming_symbols.constant_fields.applicable_kinds   = field
-dotnet_naming_symbols.constant_fields.required_modifiers = const
-dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+dotnet_naming_style.upper_case_style.capitalization                = all_upper
+dotnet_naming_style.upper_case_style.word_separator                = _
 
-dotnet_naming_style.upper_case_underscore_style.word_separator = _
-dotnet_naming_style.upper_case_underscore_style.capitalization = all_upper 
+dotnet_naming_style.I_prefix_style.required_prefix                 = I
+dotnet_naming_style.I_prefix_style.capitalization                  = pascal_case
 
+# Use all upper for constant fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.severity  = warning
+dotnet_naming_rule.constant_fields_should_be_pascal_case.symbols   = constant_fields
+dotnet_naming_rule.constant_fields_should_be_pascal_case.style     = upper_case_style
+dotnet_naming_symbols.constant_fields.applicable_kinds             = field
+dotnet_naming_symbols.constant_fields.applicable_accessibilities   = *
+dotnet_naming_symbols.constant_fields.required_modifiers           = const
 
-# internal and private fields should be _camelCase
-dotnet_naming_rule.camel_case_for_private_internal_fields.severity = suggestion
-dotnet_naming_rule.camel_case_for_private_internal_fields.symbols  = private_internal_fields
-dotnet_naming_rule.camel_case_for_private_internal_fields.style    = camel_case_underscore_style
+# Use PascalCase for public fields
+dotnet_naming_rule.pascal_case_for_public_fields.severity          = warning
+dotnet_naming_rule.pascal_case_for_public_fields.symbols           = public_fields
+dotnet_naming_rule.pascal_case_for_public_fields.style             = pascal_case_style
+dotnet_naming_symbols.public_fields.applicable_kinds               = field
+dotnet_naming_symbols.public_fields.applicable_accessibilities     = public
 
-dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
-dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal
+# Interfaces must be PascalCase and have an I prefix
+dotnet_naming_rule.interfaces_start_with_I.severity                = warning
+dotnet_naming_rule.interfaces_start_with_I.symbols                 = any_interface
+dotnet_naming_rule.interfaces_start_with_I.style                   = I_prefix_style
+dotnet_naming_symbols.any_interface.applicable_accessibilities     = *
+dotnet_naming_symbols.any_interface.applicable_kinds               = interface
 
-dotnet_naming_style.camel_case_underscore_style.required_prefix = _
-dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case 
+# Classes, structs, methods, enums, events, properties, namespaces, delegates must be PascalCase
+dotnet_naming_rule.general_naming.severity                         = warning
+dotnet_naming_rule.general_naming.symbols                          = general
+dotnet_naming_rule.general_naming.style                            = pascal_case_style
+dotnet_naming_symbols.general.applicable_kinds                     = class,struct,enum,property,method,event,delegate
+dotnet_naming_symbols.general.applicable_accessibilities           = *
 
-# Interfaces must be FirstUpper and start with an 'I'
-dotnet_naming_rule.interface_types_must_be_prefixed_with_i.severity = warning
-dotnet_naming_rule.interface_types_must_be_prefixed_with_i.symbols = interface_types
-dotnet_naming_rule.interface_types_must_be_prefixed_with_i.style = prefix_interface_interface_with_i
+# Everything else is camelCase
+dotnet_naming_rule.everything_else_naming.severity                 = warning
+dotnet_naming_rule.everything_else_naming.symbols                  = everything_else
+dotnet_naming_rule.everything_else_naming.style                    = camel_case_style
+dotnet_naming_symbols.everything_else.applicable_kinds             = *
+dotnet_naming_symbols.everything_else.applicable_accessibilities   = *
 
-dotnet_naming_symbols.interface_types.applicable_kinds = interface
-
-dotnet_naming_style.prefix_interface_interface_with_i.capitalization = first_word_upper
-dotnet_naming_style.prefix_interface_interface_with_i.required_prefix = I
-
-# first_word_upper for merhods and property
-dotnet_naming_rule.methods_and_properties_must_be_first_word_upper.severity = suggestion
-dotnet_naming_rule.methods_and_properties_must_be_first_word_upper.symbols  = method_and_property_symbols
-dotnet_naming_rule.methods_and_properties_must_be_first_word_upper.style    = first_word_upper
-
-dotnet_naming_symbols.method_and_property_symbols.applicable_kinds           = method,property
-dotnet_naming_symbols.method_and_property_symbols.applicable_accessibilities = *
-
-dotnet_naming_style.first_word_upper.capitalization = first_word_upper
+## const fields should be UPPERCASE
+#dotnet_naming_rule.upper_case_for_constant.severity = suggestion
+#dotnet_naming_rule.upper_case_for_constant.symbols  = constant_fields
+#dotnet_naming_rule.upper_case_for_constant.style    = upper_case_underscore_style
+#
+#dotnet_naming_symbols.constant_fields.applicable_kinds   = field
+#dotnet_naming_symbols.constant_fields.required_modifiers = const
+#dotnet_naming_symbols.constant_fields.applicable_accessibilities = *
+#
+#dotnet_naming_style.upper_case_underscore_style.word_separator = _
+#dotnet_naming_style.upper_case_underscore_style.capitalization = all_upper 
+#
+#
+## internal and private fields should be _camelCase
+#dotnet_naming_rule.camel_case_for_private_internal_fields.severity = suggestion
+#dotnet_naming_rule.camel_case_for_private_internal_fields.symbols  = private_internal_fields
+#dotnet_naming_rule.camel_case_for_private_internal_fields.style    = camel_case_underscore_style
+#
+#dotnet_naming_symbols.private_internal_fields.applicable_kinds = field
+#dotnet_naming_symbols.private_internal_fields.applicable_accessibilities = private, internal
+#
+#dotnet_naming_style.camel_case_underscore_style.required_prefix = _
+#dotnet_naming_style.camel_case_underscore_style.capitalization = camel_case 
+#
+## Interfaces must be FirstUpper and start with an 'I'
+#dotnet_naming_rule.interface_types_must_be_prefixed_with_i.severity = warning
+#dotnet_naming_rule.interface_types_must_be_prefixed_with_i.symbols = interface_types
+#dotnet_naming_rule.interface_types_must_be_prefixed_with_i.style = prefix_interface_interface_with_i
+#
+#dotnet_naming_symbols.interface_types.applicable_kinds = interface
+#
+#dotnet_naming_style.prefix_interface_interface_with_i.capitalization = first_word_upper
+#dotnet_naming_style.prefix_interface_interface_with_i.required_prefix = I
+#
+## pascal_case_base for merhods and property
+#dotnet_naming_rule.pascal_case_base_class.severity = suggestion
+#dotnet_naming_rule.pascal_case_base_class.symbols  = class_into
+#dotnet_naming_rule.pascal_case_base_class.style    = pascal_case_base
+#
+#dotnet_naming_symbols.class_into.applicable_kinds           = class,method,property
+#
+#dotnet_naming_style.pascal_case_base.capitalization = pascal_case
 
 
 ###############################
