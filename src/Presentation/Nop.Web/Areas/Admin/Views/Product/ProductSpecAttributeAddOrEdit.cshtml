@@ -110,7 +110,7 @@
                                     @((int) SpecificationAttributeType.Option): $('#AttributeValueOptionSection'),
                                     @((int) SpecificationAttributeType.CustomText): $('#AttributeValueCustomTextSection'),
                                     @((int) SpecificationAttributeType.CustomHtmlText): $('#AttributeValueCustomHtmlTextSection'),
-                                    @((int) SpecificationAttributeType.Hyperlink): $('#AttributeValueCustomTextSection')
+                                    @((int) SpecificationAttributeType.Hyperlink): $('#AttributeValueHyperlinkSection')
                                 }
 
                                 $('#@Html.IdFor(model => model.AttributeTypeId)').on('change',
@@ -120,8 +120,10 @@
                                         var values = Object.values(valueContainers);
                                         for (var i = 0; i < values.length; ++i) {
                                             values[i].hide();
+                                            values[i].find("input").prop("disabled", true);
                                         }
                                         valueContainers[attrTypeId].show();
+                                        valueContainers[attrTypeId].find("input").prop("disabled", false);
 
                                         var allowFilteringSection = $('#AllowFilteringSection');
                                         var allowFilteringField = $('#@Html.IdFor(model => model.AllowFiltering)');
@@ -234,6 +236,16 @@
                                     </div>
                                 </div>
                             </div>))
+                        </div>
+                        
+                        <div class="form-group" id="AttributeValueHyperlinkSection">
+                            <div class="col-md-3">
+                                <nop-label asp-for="Value" />
+                            </div>
+                            <div class="col-md-9">
+                                <nop-editor asp-for="Value" />
+                                <span asp-validation-for="Value"></span>
+                            </div>
                         </div>
 
                         <div class="form-group" id="AllowFilteringSection">
